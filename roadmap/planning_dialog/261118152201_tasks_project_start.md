@@ -37,20 +37,33 @@ Phaseの推奨: Sonnet・high以上
 
 ## Phase 2: ディスク情報とアプリ層（読み取りと設定）
 Phaseの推奨: Opus・high以上
-- [ ] T2-1 【エージェント】開発用のディスクイメージのスクリプト`scripts/test_image.sh`：ESPを含むGPTのスパースイメージ、ESPのファイルシステムを壊したイメージ、MBR・exFATのイメージを作り、接続・切断する。必要な権限を確かめ、`CONTRIBUTING.md`に使い方を書く
+引き継ぎ: T2-1〜T2-6完了。次はW2-1。W2-2・W2-3は`scripts/test_image.sh attach all`でイメージを接続してから`cargo run -p esp_latch --example dump_devices`（`-- --watch`で検知の確認）。一覧の取得は実機で約0.8秒
+- [x] T2-1 【エージェント】開発用のディスクイメージのスクリプト`scripts/test_image.sh`：ESPを含むGPTのスパースイメージ、ESPのファイルシステムを壊したイメージ、MBR・exFATのイメージを作り、接続・切断する。必要な権限を確かめ、`CONTRIBUTING.md`に使い方を書く
   - 推奨: Sonnet・high以上
   - 依存: T1-7
-- [ ] T2-2 【エージェント】ドメインモデル（Device・Partition・ApfsContainer・Volume・DeviceSnapshot）と`CommandRunner`、`DiskutilAdapter`（`diskutil list`・`info`・`apfs list`、`hdiutil info`のplistの変換、合成ディスクの除外、ラベル名の選び方、ディスクイメージのパスと保存先）。実機の出力から作ったフィクスチャ（名前・UUID・シリアルは架空の値に置き換える）で単体テスト
+  - 実施: Opus・?
+  - 管理者権限は不要（接続したイメージのデバイスは接続したユーザーの所有）。512MBではdiskutilがESPを自動で作らないため、ESPの種別GUIDで区画を作り`newfs_msdos`でFAT32にした。`hdiutil`のcreate・attachはmacOS 26以降で非推奨だが、最低OSで動くようhdiutilを使う
+- [x] T2-2 【エージェント】ドメインモデル（Device・Partition・ApfsContainer・Volume・DeviceSnapshot）と`CommandRunner`、`DiskutilAdapter`（`diskutil list`・`info`・`apfs list`、`hdiutil info`のplistの変換、合成ディスクの除外、ラベル名の選び方、ディスクイメージのパスと保存先）。実機の出力から作ったフィクスチャ（名前・UUID・シリアルは架空の値に置き換える）で単体テスト
   - 依存: T2-1
-- [ ] T2-3 【エージェント】`NvramBootInfo`：OpenCoreの`boot-path`からGPTのパーティションUUIDを取り出す。値がない場合を含めて単体テスト
+  - 実施: Opus・?
+  - `diskutil apfs list`は使わない（コンテナのボリューム・マウント先・使用量は`diskutil list`にある）。`diskutil info`は1回0.1〜0.2秒かかるため8並列で実行。`Partition`にモックの「形式」列のための`filesystem`を足し、`name`・`vendor`はない場合に`None`とした。ラベルはOSが内部で使うAPFSのボリューム（`OSInternal`）を除き、`/`はスナップショットのマウント先からも判定する。保存先は`statfs`で引く。フィクスチャは`src-tauri/fixtures/diskutil/`
+- [x] T2-3 【エージェント】`NvramBootInfo`：OpenCoreの`boot-path`からGPTのパーティションUUIDを取り出す。値がない場合を含めて単体テスト
   - 推奨: Sonnet・high以上
   - 依存: T2-2
-- [ ] T2-4 【エージェント】アプリ層：`list_devices`・`refresh`、`devices-changed`、`OperationLog`（上限、`log-appended`・`log-cleared`、`get_log`・`clear_log`、読み取りを1行にまとめる粒度）、`AppError`の種別、同じディスクへの操作のロック。開発用の`cargo run --example dump_devices`
+  - 実施: Opus・?
+  - 手元のMacには値がないため、テストの値はOpenCoreの`boot-path`の形式（`HD(1,GPT,<UUID>,…)`）から作った。値がない・GPTでない・形が崩れている・nvramが失敗した場合は`None`
+- [x] T2-4 【エージェント】アプリ層：`list_devices`・`refresh`、`devices-changed`、`OperationLog`（上限、`log-appended`・`log-cleared`、`get_log`・`clear_log`、読み取りを1行にまとめる粒度）、`AppError`の種別、同じディスクへの操作のロック。開発用の`cargo run --example dump_devices`
   - 依存: T2-3
-- [ ] T2-5 【エージェント】`DeviceMonitor`：DiskArbitration（`objc2-disk-arbitration` 0.3系）のコールバックを専用スレッドで受け、500msの間引きで再取得して`devices-changed`を出す。開始・停止のAPI
+  - 実施: Opus・?
+  - `AppCore`はTauriに依存せず`EventSink`へイベントを出す（テストは記録用の実装）。`list_devices`は取得済みの一覧を返し、`refresh`だけが取得し直して`devices-changed`を出す。`boot-path`は最初の取得で1回だけ読む。ロックは`begin_operation`で取り、`busy`の開始・終了を出す（Phase 5の操作で使う）。BSD名の検証は`esp_latch_protocol::bsd`に置いた。UIの型と窓口（`api/types.ts`・`commands.ts`・`events.ts`）も追加。実機で一覧の取得は約0.8秒
+- [x] T2-5 【エージェント】`DeviceMonitor`：DiskArbitration（`objc2-disk-arbitration` 0.3系）のコールバックを専用スレッドで受け、500msの間引きで再取得して`devices-changed`を出す。開始・停止のAPI
   - 依存: T2-4
-- [ ] T2-6 【エージェント】`SettingsStore`：`get_settings`・`update_settings`・`settings-changed`、既定値、壊れたファイル・知らない値・ない項目の扱い（imple 7章）。`auto_refresh`を`DeviceMonitor`の開始・停止につなぐ。単体テスト
+  - 実施: Opus・?
+  - `objc2-disk-arbitration` 0.3.2。CFRunLoopは`Send`でないため、停止はフラグと0.25秒ごとの`run_in_mode`で確かめる。登録直後に届く既存のディスクの通知は0.3秒読み捨てる（起動直後の一覧の取得と重ならないように）。`dump_devices -- --watch`で、イメージの切断・接続・ESPの取り外しがそれぞれ1回の再取得になることを実機で確認。起動時に開始するよう配線（設定との接続はT2-6）
+- [x] T2-6 【エージェント】`SettingsStore`：`get_settings`・`update_settings`・`settings-changed`、既定値、壊れたファイル・知らない値・ない項目の扱い（imple 7章）。`auto_refresh`を`DeviceMonitor`の開始・停止につなぐ。単体テスト
   - 依存: T2-5
+  - 実施: Opus・?
+  - storeプラグインは使わずserdeで直接読み書き（項目ごとに既定値へ戻す扱いを自前で持つため）。保存は一時ファイルからの置き換え。`settings-changed`はロックを持ったまま出し、順を適用の順とそろえる。`auto_refresh`をオンにして監視を新しく始めたときは1回再取得する。`tauri dev`で起動し、パニックがなく、起動だけでは設定ファイルを作らないことを確認
 
 ## Phase 3: メインウィンドウ（一覧と詳細）
 Phaseの推奨: Sonnet・high以上

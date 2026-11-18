@@ -29,6 +29,42 @@ bun run tauri dev
 
 Viteの開発サーバー（`http://localhost:1420`）が起動し、そのあとにアプリのウィンドウが開きます。
 
+設定は`~/Library/Application Support/com.rinontech.esp-latch/settings.json`に保存されます。最初に設定を変えるまでファイルは作られません。消すと既定値に戻ります。操作ログはメモリにだけあり、アプリを終了すると消えます。
+
+## 開発用のディスクイメージ
+
+内蔵ディスクや手持ちのUSBメモリに触れずに試せるよう、`scripts/test_image.sh`でディスクイメージを作り、接続・切断できます。
+
+```sh
+scripts/test_image.sh create all     # 3種類のイメージを作る（各512MBのスパースイメージ。実際の使用量はわずか）
+scripts/test_image.sh attach gpt     # 接続する（gpt・broken・mbr・all）
+scripts/test_image.sh status         # 作ったイメージと、接続先のディスク（/dev/diskN）
+scripts/test_image.sh detach all     # 切断する（ESPがマウントされたままでも取り出す）
+scripts/test_image.sh clean all      # 切断して、イメージファイルを消す
+```
+
+| 種別 | 構成 | 確かめられること |
+| --- | --- | --- |
+| `gpt` | GPT。ESP（FAT32・200MB、ラベル`EFI`）と、APFSコンテナ（ボリューム「ESP Latch Test」） | ESPの一覧・マウント・取り外し・取り出し、ディスクイメージの表示 |
+| `broken` | `gpt`と同じ構成で、ESPのファイルシステムの先頭を0で埋めたもの（ボリューム「ESP Latch Broken」） | マウントの失敗の通知 |
+| `mbr` | MBR。exFATのパーティション1つ（ラベル`ESPLATCHMBR`）。ESPはない | MBRのディスクの表示 |
+
+- 管理者権限は要りません。自分で接続したディスクイメージのデバイス（`/dev/diskN`）は接続したユーザーの所有になるため、パーティションの作成・フォーマットも一般ユーザーで行えます。アプリからの操作は、実際のディスクと同じく補助プロセスを経由します
+- イメージは`target/test_images/`にできます（`target/`はリポジトリに含めません）。置き場所は環境変数`ESP_LATCH_TEST_IMAGE_DIR`で変えられます
+- パーティションの作成・フォーマット・破壊は、スクリプトが接続したディスクイメージのデバイスだけに行い、ディスクイメージでないことが分かったら中止します
+- macOS 26以降では、`hdiutil`の`create`・`attach`が非推奨になり、`diskutil image`への移行を促す警告が出ます。開発環境の最低OS（macOS 11）でも動くよう`hdiutil`を使い、警告は表示しません
+
+### デバイスの一覧をJSONで見る
+
+UIを起動せずに、アプリ層が組み立てたデバイスの一覧（UIが`list_devices`で受け取るJSON）を確かめられます。操作ログとイベントは標準エラー出力に出ます。
+
+```sh
+cargo run -p esp_latch --example dump_devices
+cargo run -p esp_latch --example dump_devices -- --watch   # 続けてディスクの変化を検知し、再取得のたびに要約を出す
+```
+
+単体テストのフィクスチャ（`src-tauri/fixtures/diskutil/`）は、`diskutil`・`hdiutil`の実際の出力から、UUID・ユーザー名・スナップショット名を架空の値に置き換えて作っています。
+
 ## 確認とテスト（checkコマンド）
 
 ```sh

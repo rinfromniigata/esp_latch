@@ -15,7 +15,16 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2.7.5", features = [] }
 
 [dependencies]
+esp_latch_protocol = { path = "../crates/esp_latch_protocol" }
 serde.workspace = true
 serde_json.workspace = true
 tauri = { version = "2.12.6", features = [] }
 sys-locale = "0.3.2"
+plist = "1.10"
+libc = "0.2"
+thiserror = "2"
+objc2-disk-arbitration = "0.3"
+objc2-core-foundation = "0.3"
+
+[dev-dependencies]
+tempfile = "3"

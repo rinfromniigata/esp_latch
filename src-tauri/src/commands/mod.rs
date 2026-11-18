@@ -1,4 +1,7 @@
 //! UIから呼ぶTauriコマンド。ユースケースごとにモジュールを分ける。
 
+pub mod devices;
 pub mod locale;
+pub mod log;
+pub mod settings;
 pub mod window;
