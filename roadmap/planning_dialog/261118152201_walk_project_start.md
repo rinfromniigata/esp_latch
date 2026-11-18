@@ -3,12 +3,15 @@
 各Phaseの実装（Tn）のあとに、記載順に行う。Wnがすべて通過するまで、次のPhaseに着手しない。
 
 ## Phase 1: 基盤（雛形・テーマ・i18n・checkコマンド）
-- [ ] W1-1 【エージェント】checkコマンドが通る
+- [x] W1-1 【エージェント】checkコマンドが通る
   - 推奨: Sonnet・low以上
   - 依存: T1-7
-- [ ] W1-2 【エージェント】Universalのビルド（`.app`）が通り、成果物にフォントのファイルが含まれ、CSSとHTMLに外部のURL（Google Fontsなど）がない
+  - 実施: Sonnet・?
+- [x] W1-2 【エージェント】Universalのビルド（`.app`）が通り、成果物にフォントのファイルが含まれ、CSSとHTMLに外部のURL（Google Fontsなど）がない
   - 推奨: Sonnet・medium以上
   - 依存: W1-1
+  - 実施: Sonnet・?
+  - `tauri build --target universal-apple-darwin --bundles app`が通り（x86_64・arm64、24.8 MiB）、バイナリに埋め込まれたwoff2は8書体×2アーキテクチャ＝16。`build/`のCSS4個・HTML1個に外部URLなし（`url()`は同梱のwoff2への相対参照だけ）
 - [ ] W1-3 【ユーザー】アプリを起動し、ツールバーとメニューからメイン・設定・操作ログのウィンドウが開くこと（2回目は前面に出る）、⌘,で設定が開くこと、OSの外観の切り替えにライト・ダークが追従すること、疑似ロケールで骨格の文言が［］で囲まれて崩れないことを確かめる
   - 依存: T1-7
 
