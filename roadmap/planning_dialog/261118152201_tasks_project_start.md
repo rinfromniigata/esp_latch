@@ -4,7 +4,7 @@
 
 ## Phase 1: 基盤（雛形・テーマ・i18n・checkコマンド）
 Phaseの推奨: Sonnet・high以上
-引き継ぎ: T1-1〜T1-7完了。次はW1-1。RustはHomebrewの`rustup`（keg-only）で、`PATH`の先頭に`/opt/homebrew/opt/rustup/bin`が要る（ユーザーが`~/.zshrc`に追記）。Carbonの部品はShadow DOM内で`IBM Plex Sans`を直書きしており和文がsystem-uiになる点は、Phase 3で扱う
+引き継ぎ: Phase 1完了（W1-1〜W1-3通過）。次はT2-1（Phase 2はOpus・high以上）。RustはHomebrewの`rustup`（keg-only）で、`PATH`の先頭に`/opt/homebrew/opt/rustup/bin`が要る（ユーザーは`~/.zshrc`に追記済み）。Carbonの部品はShadow DOM内で`IBM Plex Sans`を直書きしており和文がsystem-uiになる点は、Phase 3で扱う
 - [x] T1-1 【エージェント】プロジェクトの雛形を作る：SvelteKit（`adapter-static`、`ssr = false`のSPA）＋Tauri 2＋Bun。Cargoワークスペース（`src-tauri`、`crates/esp_latch_protocol`、`crates/esp_latch_helper`の空の骨格）。識別子`com.rinontech.esp-latch`、表示名ESP Latch、メインウィンドウ1100×720、`minimumSystemVersion`。rustupに`aarch64-apple-darwin`と`x86_64-apple-darwin`を入れ、Universalのビルドが通るところまで
   - SvelteKit 3が安定版なら、Tauri公式のSvelteKitの手順との差を確かめて版を選ぶ（imple 2章）
   - 実施: Opus・?
