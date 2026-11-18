@@ -92,18 +92,31 @@
   - 確認: ユーザー（問題なし）
 
 ## Phase 5: 特権操作とESPのマウント・取り外し
-- [ ] W5-1 【エージェント】checkコマンドが通る
+- [x] W5-1 【エージェント】checkコマンドが通る
   - 推奨: Sonnet・low以上
   - 依存: T5-6
-- [ ] W5-2 【エージェント】補助プロセスの安全性を確かめる：imple 5章の検証（BSD名の形式、ESPであることの確認、トークン、相手のUID、一時ディレクトリの実体と所有者とパーミッション、`.Trashes`のシンボリックリンク、本体の終了による終了）が実装され、それぞれに不合格の入力を使ったテストがあること
+  - 実施: Opus・high
+- [x] W5-2 【エージェント】補助プロセスの安全性を確かめる：imple 5章の検証（BSD名の形式、ESPであることの確認、トークン、相手のUID、一時ディレクトリの実体と所有者とパーミッション、`.Trashes`のシンボリックリンク、本体の終了による終了）が実装され、それぞれに不合格の入力を使ったテストがあること
   - 依存: W5-1
-- [ ] W5-3 【エージェント】Universalのビルドで、同梱の補助プロセスがarm64とx86_64の両方を含む（`lipo -info`）
+  - 実施: Opus・high
+  - 7項目とも実装と不合格の入力のテストあり：BSD名（`bsd.rs`・`validates_bsd_names`・`refuses_malformed_bsd_names_without_running_anything`）、ESPの確認（`refuses_partitions_that_are_not_esp`・`refuses_unknown_or_mismatched_partitions`）、トークン（`take_token`・`tokens_match`・`wrong_token_*`）、相手のUID（`peer_allowed`。別のUIDからの接続はrootでないと作れないため関数の単体テスト）、一時ディレクトリ（`check_dir`）、`.Trashes`（`refuses_symlinked_trash`・リンクをたどらない削除）、本体の終了（`exits_when_the_parent_exits`）
+  - 不合格を1件修正：ソケットの所有者とパーミッションの設定がシンボリックリンクをたどっていた（`setup.rs`、fixに記録）。修正後にcheckが通過
+  - 直していない残りの注意（低リスク）：`empty_trash`は`statfs`で確かめたあと、マウント先をパスで開き直す（`/Volumes`の下はrootのものなので差し替えは難しい）。`eject_disk`はimpleどおりESPの確認をしない
+- [x] W5-3 【エージェント】Universalのビルドで、同梱の補助プロセスがarm64とx86_64の両方を含む（`lipo -info`）
   - 推奨: Sonnet・medium以上
   - 依存: W5-1
-- [ ] W5-4 【エージェント】Phase 5で実装した画面が、モックのファイルと構造で一致する（要素の有無と配置の順序、描かれた状態、文言の辞書キー、対応するCarbonの部品）
+  - 実施: Opus・high
+  - `bun run tauri build --target universal-apple-darwin --bundles app`で`.app`を作り、`Contents/MacOS/esp-latch-helper`が`x86_64 arm64`（本体の`esp_latch`も同じ）、`minos 11.0`。`src-tauri/binaries/esp-latch-helper-universal-apple-darwin`と同一のファイル
+- [x] W5-4 【エージェント】Phase 5で実装した画面が、モックのファイルと構造で一致する（要素の有無と配置の順序、描かれた状態、文言の辞書キー、対応するCarbonの部品）
   - 推奨: Sonnet・high以上
   - 依存: W5-1
   - 画面: S01a, S01f, S01g, S01h
+  - 実施: Opus・high
+  - モック`esp_latch_mock_S01_v2.html`の`stateData`（mounted・auth_waiting・auth_cancelled・mount_failed）と`espTile`・`espButtons`・`capacity`・`statusbar`・`toast`を、`EspTile`・`EspUsageBar`・`StatusBar`・`ToastStack`・`espStore`・`describeError`と読み合わせた。タイルの行の順（容量・形式・マウント先・ブートローダー・空き容量・マウント中だけゴミ箱）、ボタン（未マウント：primaryのマウント／マウント中：secondaryの取り外し・ghostのFinderで開く／処理中：無効のprimaryに「処理中…」）、ステータスバーの並び（状態・管理者権限の印・直前のコマンド）と認証待ちの文言、通知（成功：見出しと本文・ボタンなし／認証のキャンセル：再試行／マウントの失敗：stderrの原文・`$`つきのコマンド・再試行とログを見る、1つ目がtertiary）は一致。Carbonの部品は`cds-tag`・`cds-button`・`cds-inline-loading`・`cds-toast-notification`、容量バーは独自
+  - 辞書キーは、Phase 5の部品が使う56キーをスクリプトでモックの辞書と3言語で突き合わせ、文言の不一致なし。モックにないのは`error.*`（T3-1）と`esp.loader_none`・`esp.loader_with_version`・`esp.unknown`（T5-6）
+  - 不一致を1件修正：容量バーのツールチップ（使用中・ゴミ箱・空きの量）がなかった（`EspUsageBar.svelte`、辞書に`esp.usage.summary`を追加。fixに記録）。修正後にcheckが通過
+  - 計画どおりの違い：ゴミ箱の警告・空きが15%未満の強調・ゴミ箱のボタンはPhase 6（S01k）
+  - 直していない違い（W5-5で見てほしい）：認証待ち（S01f）のステータスバーの直前のコマンドが、モックは`osascript …`だが、実装は起動のコマンドを認証が終わってから操作ログに記録するため、それまでは前のコマンドのまま。マウント直後、詳細を読み込むまでの一瞬、ブートローダー・空き容量・ゴミ箱は「—」になる（モックにない途中の状態）
 - [ ] W5-5 【ユーザー】モックと実物を並べて、マウント直後・認証待ち・認証のキャンセル・マウントの失敗の見た目を、3言語と疑似ロケール、ライト・ダークで確かめる
   - 依存: T5-6
   - 画面: S01a, S01f, S01g, S01h

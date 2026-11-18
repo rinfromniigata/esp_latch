@@ -121,7 +121,8 @@
 		"usage": {
 			"used": "Used",
 			"trash": "Trash",
-			"free": "Free"
+			"free": "Free",
+			"summary": "Used {used} · Trash {trash} · Free {free}"
 		}
 	},
 	"other": {

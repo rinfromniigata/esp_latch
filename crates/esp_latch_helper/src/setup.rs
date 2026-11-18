@@ -8,7 +8,7 @@ use std::fmt;
 use std::fs::{self, OpenOptions};
 use std::io::{self, Read};
 use std::os::fd::AsRawFd;
-use std::os::unix::fs::{MetadataExt, OpenOptionsExt, PermissionsExt};
+use std::os::unix::fs::{MetadataExt, OpenOptionsExt};
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::Path;
 
@@ -131,13 +131,46 @@ pub fn take_token(path: &Path, owner: Owner) -> Result<String, SetupError> {
 /// ソケットを作り、所有者をディレクトリの所有者にして0600にする
 pub fn bind_socket(path: &Path, owner: Owner) -> Result<UnixListener, SetupError> {
     let listener = UnixListener::bind(path)?;
-    let secured = std::os::unix::fs::chown(path, Some(owner.uid), Some(owner.gid))
-        .and_then(|()| fs::set_permissions(path, fs::Permissions::from_mode(0o600)));
-    if let Err(error) = secured {
+    if let Err(error) = secure_socket(path, owner) {
         let _ = fs::remove_file(path);
-        return Err(error.into());
+        return Err(error);
     }
     Ok(listener)
+}
+
+/// ソケットのファイルの所有者とパーミッションを設定する。
+/// 一時ディレクトリは一般ユーザーのものなので、作った直後にシンボリックリンクへ差し替えられても、
+/// リンク先（`/etc`のファイルなど）を変えないよう、リンクをたどらずに設定し、最後にソケットであることを確かめる
+fn secure_socket(path: &Path, owner: Owner) -> Result<(), SetupError> {
+    std::os::unix::fs::lchown(path, Some(owner.uid), Some(owner.gid))?;
+    let c_path = std::ffi::CString::new(path.as_os_str().as_encoded_bytes())
+        .map_err(|_| SetupError::Io(io::ErrorKind::InvalidInput))?;
+    // SAFETY: NUL終端のパスを渡す。AT_SYMLINK_NOFOLLOWでリンクをたどらない
+    let result = unsafe {
+        libc::fchmodat(
+            libc::AT_FDCWD,
+            c_path.as_ptr(),
+            0o600,
+            libc::AT_SYMLINK_NOFOLLOW,
+        )
+    };
+    if result != 0 {
+        return Err(io::Error::last_os_error().into());
+    }
+    let meta = fs::symlink_metadata(path)?;
+    if meta.file_type().is_symlink() {
+        return Err(SetupError::Symlink);
+    }
+    if !std::os::unix::fs::FileTypeExt::is_socket(&meta.file_type()) {
+        return Err(SetupError::WrongType);
+    }
+    if meta.uid() != owner.uid {
+        return Err(SetupError::WrongOwner);
+    }
+    if meta.mode() & 0o7777 != 0o600 {
+        return Err(SetupError::WrongMode(meta.mode() & 0o7777));
+    }
+    Ok(())
 }
 
 /// 接続相手のUID・GID（`getpeereid`）
@@ -161,7 +194,7 @@ pub fn peer_allowed(peer: Owner, owner: Owner) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::os::unix::fs::{DirBuilderExt, symlink};
+    use std::os::unix::fs::{DirBuilderExt, PermissionsExt, symlink};
 
     fn private_dir() -> tempfile::TempDir {
         let dir = tempfile::tempdir().unwrap();
@@ -306,5 +339,24 @@ mod tests {
             owner
         ));
         assert!(!peer_allowed(Owner { uid: 0, gid: 0 }, owner));
+    }
+
+    #[test]
+    fn securing_the_socket_does_not_follow_symlinks() {
+        // ソケットを作った直後に、リンクへ差し替えられた場合
+        let dir = private_dir();
+        let owner = check_dir(dir.path()).unwrap();
+        let target = dir.path().join("precious");
+        write_token(&target, "keep", 0o644);
+        let path = dir.path().join("helper.sock");
+        symlink(&target, &path).unwrap();
+        assert_eq!(secure_socket(&path, owner), Err(SetupError::Symlink));
+        let meta = fs::metadata(&target).unwrap();
+        assert_eq!(meta.mode() & 0o777, 0o644, "link target is untouched");
+
+        // ソケットでない通常のファイル
+        let file = dir.path().join("file");
+        write_token(&file, "x", 0o644);
+        assert_eq!(secure_socket(&file, owner), Err(SetupError::WrongType));
     }
 }

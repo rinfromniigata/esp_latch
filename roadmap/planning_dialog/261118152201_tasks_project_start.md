@@ -114,7 +114,7 @@ Phaseの推奨: Sonnet・high以上
 
 ## Phase 5: 特権操作とESPのマウント・取り外し
 Phaseの推奨: Opus・high以上
-引き継ぎ: T5-1〜T5-6完了、checkコマンド通過。次はW5-1。OpenCoreの版は配布版のファイルから読めない（T5-4の実施メモ）ため、起動に使ったESP以外のOpenCoreは版なしで出る（W5-7で確かめる。要件との差の扱いはユーザーの判断待ち）。Homebrewのrustupは`PATH`の先頭に`/opt/homebrew/opt/rustup/bin`が要る。テスト用イメージ（disk4・disk6）は接続したまま、ESPは取り外してある。
+引き継ぎ: T5-1〜T5-6・W5-1〜W5-4完了（W5-2・W5-4で軽微な修正2件、`261119002723_fix_phase5.md`）。次はユーザーのW5-5〜W5-7。Universalの`.app`は`target/universal-apple-darwin/release/bundle/macos/`にビルド済み。OpenCoreの版は配布版のファイルから読めない（T5-4の実施メモ）ため、起動に使ったESP以外のOpenCoreは版なしで出る（W5-7で確かめる。要件との差の扱いはユーザーの判断待ち）。Homebrewのrustupは`PATH`の先頭に`/opt/homebrew/opt/rustup/bin`が要る。テスト用イメージ（disk4・disk6）は接続したまま、ESPは取り外してある。
 - [x] T5-1 【エージェント】`esp_latch_protocol`（要求・応答の型、BSD名の検証）と補助プロセス`esp-latch-helper`：一時ディレクトリとトークンの検査、ソケット（所有者とパーミッション、`getpeereid`）、本体のPIDの監視、許可リストの操作（`mount_esp`のフォールバックを含む、`unmount_esp`、`eject_disk`、`empty_trash`、`shutdown`）とESPであることの確認（imple 5章）。不正な入力を含めた単体テスト
   - 依存: T2-6
   - 実施: Opus・high

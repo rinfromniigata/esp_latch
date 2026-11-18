@@ -118,7 +118,8 @@
 		"usage": {
 			"used": "使用中",
 			"trash": "ゴミ箱",
-			"free": "空き"
+			"free": "空き",
+			"summary": "使用中 {used} · ゴミ箱 {trash} · 空き {free}"
 		}
 	},
 	"other": {

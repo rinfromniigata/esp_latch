@@ -1,5 +1,5 @@
 <script lang="ts">
-	// ESPの容量バー（独自の部品）：空き容量の文字、使用中・ゴミ箱・空きの帯、凡例。
+	// ESPの容量バー（独自の部品）：空き容量の文字、使用中・ゴミ箱・空きの帯（ツールチップでそれぞれの量）、凡例。
 	// 値の色はトークン（使用中は帯グラフのAPFSの色、ゴミ箱は警告の色）。読めない値は「不明」
 	import { m } from '#lib/i18n/index.js';
 	import type { EspUsage } from '#lib/api/types.js';
@@ -16,7 +16,15 @@
 
 {#if known && usage.free !== null && usage.total !== null}
 	<span class="mono">{m['esp.free_of']({ free: formatBytes(usage.free), total: formatBytes(usage.total) })}</span>
-	<div class="bar" aria-hidden="true">
+	<div
+		class="bar"
+		aria-hidden="true"
+		title={m['esp.usage.summary']({
+			used: formatBytes(used),
+			trash: formatBytes(trash),
+			free: formatBytes(usage.free)
+		})}
+	>
 		<span class="used" style:width={percent(used)}></span>
 		<span class="trash" style:width={percent(trash)}></span>
 	</div>

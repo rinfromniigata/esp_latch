@@ -118,7 +118,8 @@
 		"usage": {
 			"used": "已用",
 			"trash": "废纸篓",
-			"free": "可用"
+			"free": "可用",
+			"summary": "已用 {used} · 废纸篓 {trash} · 可用 {free}"
 		}
 	},
 	"other": {
