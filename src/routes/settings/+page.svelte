@@ -119,7 +119,7 @@
 			<div class="item">
 				<cds-toggle
 					size="sm"
-					hide-label
+					hideLabel
 					label-text={item.label}
 					toggled={settings[item.key]}
 					oncds-toggle-changed={toggle(item.key)}
@@ -174,6 +174,11 @@
 
 	.group .item:last-child {
 		border-bottom: 0;
+	}
+
+	/* スイッチのオンの色は、マウント中と同じブランドの色（モックと同じ） */
+	cds-toggle {
+		--cds-support-success: var(--esp-state-mounted);
 	}
 
 	.control {

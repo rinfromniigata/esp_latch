@@ -13,7 +13,8 @@
 </script>
 
 {#snippet node(item: IconNode)}
-	<svelte:element this={item.elem} {...item.attrs}>
+	<!-- snippetの中ではSVGの名前空間が引き継がれないため、xmlnsで明示する（しないとHTMLの要素になり、何も描かれない） -->
+	<svelte:element this={item.elem} xmlns="http://www.w3.org/2000/svg" {...item.attrs}>
 		{#each item.content ?? [] as child, index (index)}
 			{@render node(child)}
 		{/each}

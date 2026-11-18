@@ -15,20 +15,25 @@
 		disabled={deviceStore.loading}
 		onclick={() => void deviceStore.refresh()}
 	>
-		<Icon icon={icons.refresh} />
+		<span slot="icon" class="icon-slot"><Icon icon={icons.refresh} /></span>
 		<span slot="tooltip-content">{m['toolbar.refresh']()}</span>
 	</cds-icon-button>
 	<cds-icon-button kind="ghost" size="md" align="bottom-end" onclick={() => void openAppWindow('log')}>
-		<Icon icon={icons.log} />
+		<span slot="icon" class="icon-slot"><Icon icon={icons.log} /></span>
 		<span slot="tooltip-content">{m['toolbar.log']()}</span>
 	</cds-icon-button>
 	<cds-icon-button kind="ghost" size="md" align="bottom-end" onclick={() => void openAppWindow('settings')}>
-		<Icon icon={icons.settings} />
+		<span slot="icon" class="icon-slot"><Icon icon={icons.settings} /></span>
 		<span slot="tooltip-content">{m['toolbar.settings']()}</span>
 	</cds-icon-button>
 </div>
 
 <style>
+	/* Carbonのアイコンボタンは、アイコンを`slot="icon"`で受けるとアイコンだけのボタンとして描く */
+	.icon-slot {
+		display: contents;
+	}
+
 	.toolbar {
 		display: flex;
 		align-items: center;
