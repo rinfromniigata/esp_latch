@@ -252,11 +252,16 @@
 		},
 		"language": {
 			"label": "Language",
-			"system": "Match system"
+			"system": "Match system",
+			"ja": "日本語",
+			"en": "English",
+			"zh_hans": "中文"
 		},
 		"theme": {
 			"label": "Appearance",
-			"system": "Match system"
+			"system": "Match system",
+			"light": "Light",
+			"dark": "Dark"
 		},
 		"open_finder": "Open in Finder after mounting",
 		"default_filter": "Filter at launch",
@@ -284,7 +289,8 @@
 		"empty": {
 			"title": "No activity yet",
 			"body": "Commands run when you mount or unmount will be recorded here."
-		}
+		},
+		"copied": "Copied"
 	},
 	"menu": {
 		"app": {

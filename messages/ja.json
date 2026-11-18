@@ -247,11 +247,16 @@
 		},
 		"language": {
 			"label": "言語",
-			"system": "システムに合わせる"
+			"system": "システムに合わせる",
+			"ja": "日本語",
+			"en": "English",
+			"zh_hans": "中文"
 		},
 		"theme": {
 			"label": "外観",
-			"system": "システムに合わせる"
+			"system": "システムに合わせる",
+			"light": "ライト",
+			"dark": "ダーク"
 		},
 		"open_finder": "マウントしたらFinderで開く",
 		"default_filter": "起動時の絞り込み",
@@ -279,7 +284,8 @@
 		"empty": {
 			"title": "まだ操作はありません",
 			"body": "マウントや取り外しを行うと、実行したコマンドがここに記録されます。"
-		}
+		},
+		"copied": "コピーしました"
 	},
 	"menu": {
 		"app": {

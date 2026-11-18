@@ -41,3 +41,19 @@ export function getSettings(): Promise<Settings> {
 export function updateSettings(patch: SettingsPatch): Promise<Settings> {
 	return invoke<Settings>('update_settings', { patch });
 }
+
+export interface AppInfo {
+	version: string;
+	/** リポジトリのURL */
+	repository: string;
+}
+
+/** アプリのバージョンとリポジトリ（表示だけ。保存しない） */
+export function appInfo(): Promise<AppInfo> {
+	return invoke<AppInfo>('app_info');
+}
+
+/** リポジトリのページを既定のブラウザで開く */
+export function openRepository(): Promise<void> {
+	return invoke('open_repository');
+}

@@ -247,11 +247,16 @@
 		},
 		"language": {
 			"label": "语言",
-			"system": "跟随系统"
+			"system": "跟随系统",
+			"ja": "日本語",
+			"en": "English",
+			"zh_hans": "中文"
 		},
 		"theme": {
 			"label": "外观",
-			"system": "跟随系统"
+			"system": "跟随系统",
+			"light": "浅色",
+			"dark": "深色"
 		},
 		"open_finder": "挂载后在访达中打开",
 		"default_filter": "启动时的筛选",
@@ -279,7 +284,8 @@
 		"empty": {
 			"title": "暂无操作",
 			"body": "挂载或卸载时执行的命令会记录在这里。"
-		}
+		},
+		"copied": "已复制"
 	},
 	"menu": {
 		"app": {

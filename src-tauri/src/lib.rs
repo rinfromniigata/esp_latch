@@ -52,6 +52,8 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            commands::app::app_info,
+            commands::app::open_repository,
             commands::devices::list_devices,
             commands::devices::refresh,
             commands::locale::system_locales,

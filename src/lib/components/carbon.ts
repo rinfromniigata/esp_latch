@@ -6,3 +6,6 @@ import '@carbon/web-components/es/components/tag/index.js';
 import '@carbon/web-components/es/components/skeleton-text/index.js';
 import '@carbon/web-components/es/components/skeleton-placeholder/index.js';
 import '@carbon/web-components/es/components/data-table/index.js';
+import '@carbon/web-components/es/components/select/index.js';
+import '@carbon/web-components/es/components/toggle/index.js';
+import '@carbon/web-components/es/components/link/index.js';
