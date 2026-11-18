@@ -37,7 +37,7 @@ Phaseの推奨: Sonnet・high以上
 
 ## Phase 2: ディスク情報とアプリ層（読み取りと設定）
 Phaseの推奨: Opus・high以上
-引き継ぎ: T2-1〜T2-6完了。次はW2-1。W2-2・W2-3は`scripts/test_image.sh attach all`でイメージを接続してから`cargo run -p esp_latch --example dump_devices`（`-- --watch`で検知の確認）。一覧の取得は実機で約0.8秒
+引き継ぎ: Phase 2完了（W2-1〜W2-4通過）。次はT3-1（Phase 3はSonnet・high以上）。UIの型と窓口は`src/lib/api/`にT2-4で追加済み。テスト用イメージ（`scripts/test_image.sh attach all`）は接続したままでよい。`diskutil info`の`VirtualOrPhysical`はディスクイメージが`Virtual`になるため、合成ディスクの判定は`diskutil list`の種別で行う
 - [x] T2-1 【エージェント】開発用のディスクイメージのスクリプト`scripts/test_image.sh`：ESPを含むGPTのスパースイメージ、ESPのファイルシステムを壊したイメージ、MBR・exFATのイメージを作り、接続・切断する。必要な権限を確かめ、`CONTRIBUTING.md`に使い方を書く
   - 推奨: Sonnet・high以上
   - 依存: T1-7

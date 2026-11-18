@@ -17,18 +17,26 @@
   - 確認: ユーザー（起動に必要な`PATH`は`~/.zshrc`への追記で解決）
 
 ## Phase 2: ディスク情報とアプリ層（読み取りと設定）
-- [ ] W2-1 【エージェント】checkコマンドが通る
+- [x] W2-1 【エージェント】checkコマンドが通る
   - 推奨: Sonnet・low以上
   - 依存: T2-6
-- [ ] W2-2 【エージェント】この機械で`dump_devices`の結果を`diskutil list`と比べ、物理ディスクとディスクイメージだけが並び、合成ディスクがないこと、ラベル名の規則、ESPの数、テスト用イメージのパスと保存先が正しいことを確かめる
+  - 実施: Sonnet・high
+  - `bun run check`の8段階（準備・型検査・lint・テスト・Rust・i18n・コピーの一致・色とサイズの直書き）がすべて通過
+- [x] W2-2 【エージェント】この機械で`dump_devices`の結果を`diskutil list`と比べ、物理ディスクとディスクイメージだけが並び、合成ディスクがないこと、ラベル名の規則、ESPの数、テスト用イメージのパスと保存先が正しいことを確かめる
   - 推奨: Sonnet・high以上
   - 依存: W2-1
-- [ ] W2-3 【エージェント】テスト用イメージの接続・切断で、間引かれた1回の再取得が起きること、`auto_refresh`をオフにすると起きないことを確かめる
+  - 実施: Sonnet・high
+  - 実機（Apple silicon、テスト用イメージ3本を接続）で、`dump_devices`は`disk0`（内蔵）・`disk4`・`disk6`・`disk8`（ディスクイメージ）の4つ。`diskutil list`の`(synthesized)`のdisk1・2・3・5・7は出ず、一致した。ディスク・パーティションのサイズとマウント先も`diskutil list -plist`と一致。ラベルは内蔵が`Macintosh HD`（`/`のボリューム）、イメージはファイル名（`gpt.sparseimage`など。モックS01のdisk6の規則どおり）。ESPは`disk4s1`・`disk6s1`の2つで、`diskutil list`のEFIと一致（内蔵は0。brokenの名前は`None`でdiskutilも空）。イメージのパスは`hdiutil info`と一致し、保存先`disk3s5`は`df`の`/System/Volumes/Data`と一致。`diskutil info`の`VirtualOrPhysical`はディスクイメージが`Virtual`と出るため、合成の判定には使えない（実装は`diskutil list`の種別）
+- [x] W2-3 【エージェント】テスト用イメージの接続・切断で、間引かれた1回の再取得が起きること、`auto_refresh`をオフにすると起きないことを確かめる
   - 推奨: Sonnet・high以上
   - 依存: W2-1
-- [ ] W2-4 【エージェント】フィクスチャに、この機械の実際のボリューム名・UUID・シリアルが残っていないことを、実機の値で`grep`して確かめる
+  - 実施: Sonnet・high
+  - `dump_devices -- --watch`で、起動直後は再取得なし、`mbr`の切断と接続でそれぞれ1回ずつ`devices-changed`が出て、そのあとの待機中は出なかった。一時的な検証コードで`apply_auto_refresh`を通すと、オフでは監視が始まらず再取得0回、オンにすると切断・接続で2回、再びオフにすると0回（検証コードは削除済み）。アプリ全体の配線（`lib.rs`・`update_settings`）は実機では起動していない
+- [x] W2-4 【エージェント】フィクスチャに、この機械の実際のボリューム名・UUID・シリアルが残っていないことを、実機の値で`grep`して確かめる
   - 推奨: Sonnet・medium以上
   - 依存: W2-1
+  - 実施: Sonnet・high
+  - この機械のディスク・パーティション・ボリュームの全UUID（30個）、シリアル、ユーザー名、ホスト名で、追跡中の全ファイル（`roadmap/archived/`を除く）を`git grep`し、一致0件。フィクスチャのUUIDは`00000000-0000-4000-A000-…`の連番と公知のパーティション種別GUID4つだけ、イメージのパスは`/Users/alice/…`。残る実機と共通の値は`APPLE SSD AP0512Q`（機種の型番）とAPFSの既定のボリューム名（Macintosh HD・Preboot・Recovery・Update・VM・Data・Hardware・xART・iSCPreboot）で、個体を特定しない
 
 ## Phase 3: メインウィンドウ（一覧と詳細）
 - [ ] W3-1 【エージェント】checkコマンドが通る
