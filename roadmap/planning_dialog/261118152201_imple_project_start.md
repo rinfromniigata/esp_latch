@@ -1,6 +1,6 @@
 # esp_latch imple（アーキテクチャと設計）
 
-正本：`roadmap/specs/esp_latch_SPEC_v1.md`（振る舞い・非機能・技術）、`esp_latch_tokens_v1.css`（値）、`esp_latch_mock_{画面ID}_v1.html`（画面構成）、Carbon Design System v11（部品の振る舞い）。このファイルは、それらをどう実装するかを定める。値・文言を写さない。
+正本：`roadmap/specs/`の最新版の`esp_latch_SPEC_v{n}.md`（振る舞い・非機能・技術）、`esp_latch_tokens_v{n}.css`（値）、`esp_latch_mock_{画面ID}_v{n}.html`（画面構成）、Carbon Design System v11（部品の振る舞い）。このファイルは、それらをどう実装するかを定める。値・文言を写さない。
 
 ## 1. 全体の構成
 

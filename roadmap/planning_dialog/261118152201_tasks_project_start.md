@@ -1,6 +1,6 @@
 # esp_latch tasks
 
-設計は`261118150626_imple_project_start.md`、正本は`roadmap/specs/`の最新版。実行順は記載順。
+設計は`261118152201_imple_project_start.md`、正本は`roadmap/specs/`の最新版。実行順は記載順。
 
 ## Phase 1: 基盤（雛形・テーマ・i18n・checkコマンド）
 Phaseの推奨: Sonnet・high以上
@@ -9,8 +9,8 @@ Phaseの推奨: Sonnet・high以上
 - [ ] T1-2 【エージェント】`CONTRIBUTING.md`の骨格（受け付け方針、開発環境、セットアップ、起動のコマンド、リポジトリ構成と`roadmap/`・`docs/brand/`の役割）
   - 推奨: Sonnet・medium以上
   - 依存: T1-1
-- [ ] T1-3 【ユーザー】claude.aiでトークンのコントラスト（ライトの`--esp-state-mounted`、ダークの`--cds-button-primary`・`-hover`）を調整し、改訂版プランアセットをリポジトリルートに置く
-  - エージェントは、仕様変更の手順でv2として取り込んでから、T1-4に着手する
+- [x] T1-3 【ユーザー】claude.aiでトークンのコントラスト（ライトの`--esp-state-mounted`、ダークの`--cds-button-primary`・`-hover`）を調整し、改訂版プランアセットをリポジトリルートに置く
+  - 実施: ユーザー（claude.ai）。プランアセット v2として取り込み済み ← development/261118152033_change_token_contrast.md
 - [ ] T1-4 【エージェント】Carbon Design Systemの導入とテーマの設定：`@carbon/web-components` 2.xを導入し、g10・g100の土台を`[data-theme]`に当て、`specs/`の`tokens.css`を`src/lib/theme/tokens.css`へコピーして上書きさせる。外観（システム・ライト・ダーク）の切り替えの仕組み。IBM Plex Sans・Sans JP・Monoを同梱する（CDNを使わない）。`brand.md`とマスターSVGを`docs/brand/`へコピーする
   - 依存: T1-1, T1-3
 - [ ] T1-5 【エージェント】i18nの基盤：Paraglide JS 2を導入し、3つのモックの辞書を`messages/{ja,en,zh-Hans}.json`へ移す（複数形の形をそろえる）。ロケールの判定・保持・フォールバック、`<html lang>`、ロケールごとの書体、Carbonの部品への文言の受け渡し、`Intl`による整形の関数、疑似ロケール（開発時だけ）

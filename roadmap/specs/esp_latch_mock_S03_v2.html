@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>esp_latch モック S01</title>
+<title>esp_latch モック S03</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+JP:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -33,6 +33,8 @@
   --cds-button-disabled: #c6c6c6;
   --cds-field-01: #ffffff;
   --cds-highlight: #d0e2ff;
+  --cds-tag-background-blue: #d0e2ff;
+  --cds-tag-color-blue: #0043ce;
   --cds-support-error: #da1e28;
   --cds-support-warning: #f1c21b;
   --cds-overlay: rgba(22,22,22,.5);
@@ -71,6 +73,8 @@
   --cds-button-disabled: #393939;
   --cds-field-01: #262626;
   --cds-highlight: #002d9c;
+  --cds-tag-background-blue: #0043ce;
+  --cds-tag-color-blue: #d0e2ff;
   --cds-support-error: #fa4d56;
   --cds-support-warning: #f1c21b;
   --cds-overlay: rgba(0,0,0,.65);
@@ -78,7 +82,7 @@
 }
 
 /* ===== 2. ブランドトークン（esp_latch_tokens.css の写し。1を上書きする） ===== */
-/* esp_latch ブランドトークン（確定）
+/* esp_latch ブランドトークン（確定・v1からの改訂：WCAG AA 4.5:1を満たすよう文字と背景の組み合わせを調整）
    Carbon Design System v11（@carbon/web-components 2.x）のテーマを上書きする値だけを持つ。
    ライトは g10、ダークは g100 を土台にする。各値の右のコメントは、上書きする Carbon の既定値。
    Carbon にない項目（書体の切り替え・角丸・マウント状態色・帯グラフの色）は --esp- 接頭辞で持つ */
@@ -121,8 +125,10 @@
   --cds-button-primary-hover: #1a5fb4; /* g10: #0050e6 */
   --cds-button-primary-active: #154c91;/* g10: #002d9c */
   --cds-highlight: #dbe8f8;            /* g10: #d0e2ff */
+  --cds-tag-background-blue: #dbe8f8;  /* g10: #d0e2ff（「ESP N個」タグ） */
+  --cds-tag-color-blue: #1a5fb4;       /* g10: #0043ce。#dbe8f8 に対して 5.06 */
   --cds-support-error: #c4392d;        /* g10: #da1e28 */
-  --esp-state-mounted: #0f8a7e;        /* 独自：マウント中の文字・枠・帯 */
+  --esp-state-mounted: #0a7268;        /* 独自：マウント中の文字・枠・帯。-bg に対して 4.86、白に対して 5.80 */
   --esp-state-mounted-bg: #d8f0ed;     /* 独自：マウント中のタグ背景 */
   --esp-part-esp: #1f6fd1;             /* 独自：帯グラフのESP */
   --esp-part-apfs: #8a94a3;            /* 独自：帯グラフのAPFS */
@@ -146,10 +152,12 @@
   --cds-interactive: #5b9df0;          /* g100: #4589ff */
   --cds-focus: #e6e9ee;                /* g100: #ffffff */
   --cds-link-primary: #7fb3f5;         /* g100: #78a9ff */
-  --cds-button-primary: #2f7ad8;       /* g100: #0f62fe */
-  --cds-button-primary-hover: #3a86e6; /* g100: #0050e6 */
-  --cds-button-primary-active: #2464b5;/* g100: #002d9c */
+  --cds-button-primary: #2b70c9;       /* g100: #0f62fe。白い文字に対して 4.93 */
+  --cds-button-primary-hover: #2768bd; /* g100: #0050e6。白い文字に対して 5.52 */
+  --cds-button-primary-active: #1f589f;/* g100: #002d9c。白い文字に対して 7.11（hoverより一段暗く） */
   --cds-highlight: #1d3352;            /* g100: #002d9c */
+  --cds-tag-background-blue: #1d3352;  /* g100: #0043ce（「ESP N個」タグ） */
+  --cds-tag-color-blue: #7fb3f5;       /* g100: #d0e2ff。#1d3352 に対して 5.87 */
   --cds-support-error: #f0786b;        /* g100: #fa4d56 */
   --esp-state-mounted: #3cc4b3;        /* 独自 */
   --esp-state-mounted-bg: #143a36;     /* 独自 */
@@ -231,7 +239,7 @@ section[data-screen] { margin-bottom: 56px; }
   background: var(--cds-layer-selected-01); color: var(--cds-text-primary); }
 .tag.mounted { background: var(--esp-state-mounted-bg); color: var(--esp-state-mounted); }
 .tag.mounted::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-.tag.esp { background: var(--cds-highlight); color: var(--cds-link-primary); }
+.tag.esp { background: var(--cds-tag-background-blue); color: var(--cds-tag-color-blue); }
 .tag.boot { background: transparent; border: 1px solid var(--cds-border-strong-01); color: var(--cds-text-secondary); }
 .tag.boot svg { width: 12px; height: 12px; fill: currentColor; }
 
@@ -409,65 +417,12 @@ section[data-screen] { margin-bottom: 56px; }
     <p>部品はCarbon Design System v11の見た目を写し、色・書体・角丸をブランドトークンで上書きしています。ディスクの名前や容量は架空の例です。</p>
   </div>
 
-  <!-- ================= S01 ================= -->
-  <section data-screen="S01">
-    <div class="screen-head"><span class="sid">S01</span><h2>メインウィンドウ</h2></div>
-
-    <div class="state"><h3><span class="sid">S01</span>通常（未マウント）</h3>
-      <p class="note">左にデバイス一覧、右に選んだデバイスの詳細。サイドバーには物理ディスクとディスクイメージだけを並べ、APFSコンテナ（合成ディスク）とボリュームは「その他のパーティション」の表で、APFSパーティションの下に折りたたみで入れ子にする（行をクリックで開閉）。名前はボリュームのラベル名を大きく、ベンダー名を下に小さく出す。デバイスの選択と絞り込みも動きます。</p>
-      <div data-render data-state="normal"></div></div>
-
-    <div class="state"><h3><span class="sid">S01a</span>ESPをマウントした直後</h3>
-      <p class="note">USBメモリのESPをマウントし、Finderで開いた状態。補助プロセスが動いている間は、ステータスバーに「管理者権限で実行中」と出す。マウント先、検出したブートローダーを表示し、成功の通知を右下に出す（数秒で消える）。内蔵ディスクのESPには、OpenCoreが記録した起動パスから「起動に使用」の印をつける。</p>
-      <div data-render data-state="mounted"></div></div>
-
-    <div class="state"><h3><span class="sid">S01b</span>ディスクイメージ</h3>
-      <p class="note">dmgをマウントしたディスク。表示名はイメージのファイル名にし、イメージファイルのパスと、それを保存している物理ストレージ（<span class="mono">disk1s1</span> 上）を示す。</p>
-      <div data-render data-state="image"></div></div>
-
-    <div class="state"><h3><span class="sid">S01c</span>ESPのないデバイス</h3>
-      <p class="note">MBRでフォーマットしたexFATのUSBメモリ。</p>
-      <div data-render data-state="no_esp"></div></div>
-
-    <div class="state"><h3><span class="sid">S01d</span>絞り込みの結果が空</h3>
-      <p class="note">「ESPあり」で絞り込み、該当がない場合（ESPのないUSBメモリだけを接続しているときなど）。</p>
-      <div data-render data-state="no_match"></div></div>
-
-    <div class="state"><h3><span class="sid">S01e</span>読み込み中</h3>
-      <p class="note">起動直後と更新中。スケルトンを表示する。</p>
-      <div data-render data-state="loading"></div></div>
-
-    <div class="state"><h3><span class="sid">S01f</span>管理者の認証を待っている</h3>
-      <p class="note">権限が必要な操作を初めて行うと、macOSの管理者認証ダイアログ（OS標準。アプリでは描かない）が出る。認証されるとroot権限の補助プロセスが起動し、アプリを閉じるまで使い回す（2回目以降は認証なし）。待っている間はボタンを処理中にし、ステータスバーに待機中と出す。</p>
-      <div data-render data-state="auth_waiting"></div></div>
-
-    <div class="state"><h3><span class="sid">S01g</span>認証のキャンセル</h3>
-      <p class="note">認証ダイアログでキャンセルされたら、通知で知らせて再試行できるようにする。</p>
-      <div data-render data-state="auth_cancelled"></div></div>
-
-    <div class="state"><h3><span class="sid">S01h</span>マウントの失敗</h3>
-      <p class="note"><span class="mono">diskutil</span>のエラーをそのまま見せ、実行したコマンドも添える。</p>
-      <div data-render data-state="mount_failed"></div></div>
-
-    <div class="state"><h3><span class="sid">S01i</span>デバイスの取り出しの確認</h3>
-      <p class="note">デバイスごと取り出すときだけ確認する（ESP単体の取り外しは確認しない）。</p>
-      <div data-render data-state="eject_confirm"></div></div>
-
-    <div class="state"><h3><span class="sid">S01j</span>デバイスが多い・名前が長い</h3>
-      <p class="note">12台接続し、ラベル名もベンダー名も長いケースを選んだ状態。サイドバーでは1行で省略し、ホバーで全文を出す。見出しでは折り返す。</p>
-      <div data-render data-state="many"></div></div>
-
-    <div class="state"><h3><span class="sid">S01k</span>ESPのゴミ箱に古いファイルが残っている</h3>
-      <p class="note">FinderでESP上のファイルを「ゴミ箱に入れる」と、そのESPの<span class="mono">.Trashes</span>に移るだけで容量は戻らない。マウント中のESPは空き容量とゴミ箱の量を表示し、ゴミ箱にファイルがあれば警告を出して、「ゴミ箱を空にして取り外す」を主な操作にする。単独の「ゴミ箱を空にする」も置く。消すのはそのESPの<span class="mono">.Trashes</span>だけで、EFIフォルダには触れない。</p>
-      <div data-render data-state="trash"></div></div>
-
-    <div class="state"><h3><span class="sid">S01l</span>ESPのゴミ箱を空にした</h3>
-      <p class="note">「ゴミ箱を空にする」の直後。解放した容量を通知で知らせる。</p>
-      <div data-render data-state="trash_emptied"></div></div>
-
-    <div class="state"><h3><span class="sid">S01m</span>部品の状態</h3>
-      <p class="note">ボタンの通常・ホバー・フォーカス・無効。</p>
-      <div class="parts" id="parts"></div></div>
+  <!-- ================= S03 ================= -->
+  <section data-screen="S03">
+    <div class="screen-head"><span class="sid">S03</span><h2>操作ログ</h2></div>
+    <p class="note muted">ツールバーから開く別ウィンドウ。アプリが実行したコマンドと結果を、起動中の分だけ残す（ファイルには保存しない）。</p>
+    <div class="state"><h3><span class="sid">S03</span>記録あり</h3><div class="win small" id="log-win" style="width:820px"></div></div>
+    <div class="state"><h3><span class="sid">S03a</span>空</h3><div class="win small" id="log-win-empty" style="width:820px"></div></div>
   </section>
 </div>
 
@@ -479,279 +434,51 @@ const DICT = {
     "toolbar.refresh": "更新",
     "toolbar.settings": "設定",
     "toolbar.log": "操作ログ",
-    "device_list.title": "ストレージ",
-    "device_list.count": "{count}台",
-    "device_list.count_filtered": "{shown}台／全{total}台",
-    "filter.all": "全て",
-    "filter.physical": "物理",
-    "filter.esp": "ESPあり",
-    "device.kind.internal": "内蔵",
-    "device.kind.external": "外付け",
-    "device.kind.image": "ディスクイメージ",
-    "device.esp_count": { other: "ESP {count}個" },
-    "device.esp_none": "ESPなし",
-    "device.mounted_count": { other: "{count}個マウント中" },
-    "device.on_store": "{store} 上",
-    "detail.eject_device": "デバイスを取り出す",
-    "detail.identifier": "識別子",
-    "detail.connection": "接続",
-    "detail.scheme": "パーティション方式",
-    "detail.capacity": "容量",
-    "detail.stored_on": "保存先",
-    "band.title": "パーティション配置",
-    "band.note": "小さいパーティションは最小幅で表示しています",
-    "band.legend.esp": "ESP",
-    "band.legend.mounted": "マウント中のESP",
-    "band.legend.apfs": "APFS",
-    "band.legend.hfs": "HFS+",
-    "band.legend.other": "その他",
-    "esp.section_title": "EFIシステムパーティション",
-    "esp.mount": "マウント",
-    "esp.unmount": "取り外す",
-    "esp.open_finder": "Finderで開く",
-    "esp.working": "処理中…",
-    "esp.state.mounted": "マウント中",
-    "esp.state.unmounted": "未マウント",
-    "esp.boot_badge": "起動に使用",
-    "esp.mount_point": "マウント先",
-    "esp.size": "容量",
-    "esp.format": "形式",
-    "esp.loader": "ブートローダー",
-    "esp.loader_unknown": "マウントすると確認できます",
-    "esp.free": "空き容量",
-    "esp.free_of": "{free}（全{total}）",
-    "esp.free_unknown": "マウントすると確認できます",
-    "esp.trash": "ゴミ箱",
-    "esp.trash_none": "空",
-    "esp.trash_warning": "ゴミ箱に{size}残っています。取り外しても、ESPの容量は戻りません。",
-    "esp.empty_trash": "ゴミ箱を空にする",
-    "esp.empty_trash_unmount": "ゴミ箱を空にして取り外す",
-    "esp.usage.used": "使用中",
-    "esp.usage.trash": "ゴミ箱",
-    "esp.usage.free": "空き",
-    "other.section_title": "その他のパーティション",
-    "other.container_label": "APFSコンテナ",
-    "other.toggle_container": "コンテナとボリュームを表示",
-    "other.volume_count": { other: "ボリューム{count}個" },
-    "table.volume_used": "{size} 使用",
-    "table.identifier": "識別子",
-    "table.name": "名前",
-    "table.type": "種類",
-    "table.size": "容量",
-    "table.mount_point": "マウント先",
-    "table.not_mounted": "—",
-    "empty.no_match.title": "条件に合うデバイスはありません",
-    "empty.no_match.body": "絞り込みを「{filter}」にすると、すべてのデバイスを表示します。",
-    "empty.no_esp.title": "このデバイスにESPはありません",
-    "empty.no_esp.body": "{device} にEFIシステムパーティションは見つかりませんでした。",
-    "empty.select.title": "デバイスを選んでください",
-    "empty.select.body": "左の一覧からストレージを選ぶと、ESPを操作できます。",
-    "status.loading": "デバイスを読み込んでいます…",
-    "status.ready": "{count}台のデバイス、うちESPあり{esp}台",
-    "status.last_command": "最後のコマンド",
-    "status.waiting_auth": "管理者の認証を待っています…",
-    "status.privileged": "管理者権限で実行中",
-    "toast.mount_success.title": "マウントしました",
-    "toast.mount_success.body": "{id} を {path} にマウントしました。",
-    "toast.mount_failed.title": "マウントできませんでした",
-    "toast.auth_cancelled.title": "認証がキャンセルされました",
-    "toast.auth_cancelled.body": "ESPのマウントには管理者の権限が必要です。",
-    "toast.trash_emptied.title": "ゴミ箱を空にしました",
-    "toast.trash_emptied.body": "{id} の空き容量が {size} 増えました。",
-    "toast.retry": "再試行",
-    "toast.show_log": "ログを見る",
-    "toast.close": "閉じる",
-    "modal.eject.label": "デバイスの取り出し",
-    "modal.eject.title": "{device} を取り出しますか？",
-    "modal.eject.body": { other: "このデバイスのボリューム{count}個をすべて取り外します。マウント中のESPも取り外されます。" },
-    "modal.eject.confirm": "取り出す",
-    "modal.cancel": "キャンセル"
+    "log.title": "操作ログ",
+    "log.copy": "コピー",
+    "log.clear": "消去",
+    "log.col.time": "時刻",
+    "log.col.command": "コマンド",
+    "log.col.result": "結果",
+    "log.result.ok": "成功",
+    "log.result.fail": "失敗",
+    "log.result.cancelled": "キャンセル",
+    "log.empty.title": "まだ操作はありません",
+    "log.empty.body": "マウントや取り外しを行うと、実行したコマンドがここに記録されます。"
   },
   en: {
     "app.name": "ESP Latch",
     "toolbar.refresh": "Refresh",
     "toolbar.settings": "Settings",
     "toolbar.log": "Activity Log",
-    "device_list.title": "Storage",
-    "device_list.count": { one: "{count} device", other: "{count} devices" },
-    "device_list.count_filtered": "{shown} of {total}",
-    "filter.all": "All",
-    "filter.physical": "Physical",
-    "filter.esp": "With ESP",
-    "device.kind.internal": "Internal",
-    "device.kind.external": "External",
-    "device.kind.image": "Disk Image",
-    "device.esp_count": { one: "{count} ESP", other: "{count} ESPs" },
-    "device.esp_none": "No ESP",
-    "device.mounted_count": { other: "{count} mounted" },
-    "device.on_store": "on {store}",
-    "detail.eject_device": "Eject Device",
-    "detail.identifier": "Identifier",
-    "detail.connection": "Connection",
-    "detail.scheme": "Partition scheme",
-    "detail.capacity": "Capacity",
-    "detail.stored_on": "Stored on",
-    "band.title": "Partition Layout",
-    "band.note": "Small partitions are drawn at a minimum width",
-    "band.legend.esp": "ESP",
-    "band.legend.mounted": "Mounted ESP",
-    "band.legend.apfs": "APFS",
-    "band.legend.hfs": "HFS+",
-    "band.legend.other": "Other",
-    "esp.section_title": "EFI System Partitions",
-    "esp.mount": "Mount",
-    "esp.unmount": "Unmount",
-    "esp.open_finder": "Open in Finder",
-    "esp.working": "Working…",
-    "esp.state.mounted": "Mounted",
-    "esp.state.unmounted": "Not mounted",
-    "esp.boot_badge": "Booted from",
-    "esp.mount_point": "Mount point",
-    "esp.size": "Size",
-    "esp.format": "Format",
-    "esp.loader": "Bootloader",
-    "esp.loader_unknown": "Mount to check",
-    "esp.free": "Free space",
-    "esp.free_of": "{free} of {total}",
-    "esp.free_unknown": "Mount to check",
-    "esp.trash": "Trash",
-    "esp.trash_none": "Empty",
-    "esp.trash_warning": "{size} is still in this ESP’s Trash. Unmounting won’t free that space.",
-    "esp.empty_trash": "Empty Trash",
-    "esp.empty_trash_unmount": "Empty Trash and Unmount",
-    "esp.usage.used": "Used",
-    "esp.usage.trash": "Trash",
-    "esp.usage.free": "Free",
-    "other.section_title": "Other Partitions",
-    "other.container_label": "APFS Container",
-    "other.toggle_container": "Show container and volumes",
-    "other.volume_count": { one: "{count} volume", other: "{count} volumes" },
-    "table.volume_used": "{size} used",
-    "table.identifier": "Identifier",
-    "table.name": "Name",
-    "table.type": "Type",
-    "table.size": "Size",
-    "table.mount_point": "Mount point",
-    "table.not_mounted": "—",
-    "empty.no_match.title": "No devices match this filter",
-    "empty.no_match.body": "Switch the filter to “{filter}” to show every device.",
-    "empty.no_esp.title": "This device has no ESP",
-    "empty.no_esp.body": "No EFI System Partition was found on {device}.",
-    "empty.select.title": "Select a device",
-    "empty.select.body": "Choose a storage device from the list to work with its ESPs.",
-    "status.loading": "Loading devices…",
-    "status.ready": "{count} devices, {esp} with an ESP",
-    "status.last_command": "Last command",
-    "status.waiting_auth": "Waiting for administrator authentication…",
-    "status.privileged": "Running with administrator privileges",
-    "toast.mount_success.title": "Mounted",
-    "toast.mount_success.body": "Mounted {id} at {path}.",
-    "toast.mount_failed.title": "Couldn’t mount the ESP",
-    "toast.auth_cancelled.title": "Authentication was cancelled",
-    "toast.auth_cancelled.body": "Mounting an ESP requires administrator privileges.",
-    "toast.trash_emptied.title": "Trash emptied",
-    "toast.trash_emptied.body": "Freed {size} on {id}.",
-    "toast.retry": "Try Again",
-    "toast.show_log": "View Log",
-    "toast.close": "Close",
-    "modal.eject.label": "Eject device",
-    "modal.eject.title": "Eject {device}?",
-    "modal.eject.body": { one: "{count} volume on this device will be unmounted, including any mounted ESP.", other: "All {count} volumes on this device will be unmounted, including any mounted ESP." },
-    "modal.eject.confirm": "Eject",
-    "modal.cancel": "Cancel"
+    "log.title": "Activity Log",
+    "log.copy": "Copy",
+    "log.clear": "Clear",
+    "log.col.time": "Time",
+    "log.col.command": "Command",
+    "log.col.result": "Result",
+    "log.result.ok": "Succeeded",
+    "log.result.fail": "Failed",
+    "log.result.cancelled": "Cancelled",
+    "log.empty.title": "No activity yet",
+    "log.empty.body": "Commands run when you mount or unmount will be recorded here."
   },
   "zh-Hans": {
     "app.name": "ESP Latch",
     "toolbar.refresh": "刷新",
     "toolbar.settings": "设置",
     "toolbar.log": "操作日志",
-    "device_list.title": "存储设备",
-    "device_list.count": { other: "{count} 台" },
-    "device_list.count_filtered": "{shown} 台 / 共 {total} 台",
-    "filter.all": "全部",
-    "filter.physical": "物理",
-    "filter.esp": "有 ESP",
-    "device.kind.internal": "内置",
-    "device.kind.external": "外置",
-    "device.kind.image": "磁盘映像",
-    "device.esp_count": { other: "{count} 个 ESP" },
-    "device.esp_none": "无 ESP",
-    "device.mounted_count": { other: "{count} 个已挂载" },
-    "device.on_store": "位于 {store}",
-    "detail.eject_device": "推出设备",
-    "detail.identifier": "标识符",
-    "detail.connection": "连接方式",
-    "detail.scheme": "分区方案",
-    "detail.capacity": "容量",
-    "detail.stored_on": "存储位置",
-    "band.title": "分区布局",
-    "band.note": "较小的分区按最小宽度显示",
-    "band.legend.esp": "ESP",
-    "band.legend.mounted": "已挂载的 ESP",
-    "band.legend.apfs": "APFS",
-    "band.legend.hfs": "HFS+",
-    "band.legend.other": "其他",
-    "esp.section_title": "EFI 系统分区",
-    "esp.mount": "挂载",
-    "esp.unmount": "卸载",
-    "esp.open_finder": "在访达中打开",
-    "esp.working": "处理中…",
-    "esp.state.mounted": "已挂载",
-    "esp.state.unmounted": "未挂载",
-    "esp.boot_badge": "当前启动",
-    "esp.mount_point": "挂载点",
-    "esp.size": "大小",
-    "esp.format": "格式",
-    "esp.loader": "引导程序",
-    "esp.loader_unknown": "挂载后可检测",
-    "esp.free": "可用空间",
-    "esp.free_of": "{free}（共 {total}）",
-    "esp.free_unknown": "挂载后可查看",
-    "esp.trash": "废纸篓",
-    "esp.trash_none": "空",
-    "esp.trash_warning": "废纸篓中仍有 {size}。卸载后，这部分 ESP 空间也不会释放。",
-    "esp.empty_trash": "清倒废纸篓",
-    "esp.empty_trash_unmount": "清倒废纸篓并卸载",
-    "esp.usage.used": "已用",
-    "esp.usage.trash": "废纸篓",
-    "esp.usage.free": "可用",
-    "other.section_title": "其他分区",
-    "other.container_label": "APFS 容器",
-    "other.toggle_container": "显示容器和宗卷",
-    "other.volume_count": { other: "{count} 个宗卷" },
-    "table.volume_used": "已用 {size}",
-    "table.identifier": "标识符",
-    "table.name": "名称",
-    "table.type": "类型",
-    "table.size": "大小",
-    "table.mount_point": "挂载点",
-    "table.not_mounted": "—",
-    "empty.no_match.title": "没有符合条件的设备",
-    "empty.no_match.body": "将筛选切换为“{filter}”即可显示所有设备。",
-    "empty.no_esp.title": "此设备没有 ESP",
-    "empty.no_esp.body": "未在 {device} 上找到 EFI 系统分区。",
-    "empty.select.title": "请选择设备",
-    "empty.select.body": "从左侧列表中选择存储设备，即可操作其 ESP。",
-    "status.loading": "正在读取设备…",
-    "status.ready": "{count} 台设备，其中 {esp} 台有 ESP",
-    "status.last_command": "上一条命令",
-    "status.waiting_auth": "正在等待管理员认证…",
-    "status.privileged": "正在以管理员权限运行",
-    "toast.mount_success.title": "已挂载",
-    "toast.mount_success.body": "已将 {id} 挂载到 {path}。",
-    "toast.mount_failed.title": "无法挂载",
-    "toast.auth_cancelled.title": "认证已取消",
-    "toast.auth_cancelled.body": "挂载 ESP 需要管理员权限。",
-    "toast.trash_emptied.title": "已清倒废纸篓",
-    "toast.trash_emptied.body": "已在 {id} 上释放 {size}。",
-    "toast.retry": "重试",
-    "toast.show_log": "查看日志",
-    "toast.close": "关闭",
-    "modal.eject.label": "推出设备",
-    "modal.eject.title": "要推出 {device} 吗？",
-    "modal.eject.body": { other: "将卸载此设备上的全部 {count} 个宗卷，包括已挂载的 ESP。" },
-    "modal.eject.confirm": "推出",
-    "modal.cancel": "取消"
+    "log.title": "操作日志",
+    "log.copy": "复制",
+    "log.clear": "清除",
+    "log.col.time": "时间",
+    "log.col.command": "命令",
+    "log.col.result": "结果",
+    "log.result.ok": "成功",
+    "log.result.fail": "失败",
+    "log.result.cancelled": "已取消",
+    "log.empty.title": "暂无操作",
+    "log.empty.body": "挂载或卸载时执行的命令会记录在这里。"
   }
 };
 
