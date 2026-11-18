@@ -5,3 +5,4 @@ import './fonts.css';
 import './base.css';
 
 export { applyTheme, type ThemePreference } from './theme';
+export { applyCarbonFonts } from './carbon_fonts';

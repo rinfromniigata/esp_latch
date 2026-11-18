@@ -52,6 +52,7 @@
 			}
 		],
 		"esp_none": "无 ESP",
+		"more_labels": "另 {count} 个",
 		"mounted_count": [
 			{
 				"declarations": [
@@ -185,6 +186,35 @@
 		"retry": "重试",
 		"show_log": "查看日志",
 		"close": "关闭"
+	},
+	"error": {
+		"command_failed": {
+			"title": "命令执行失败"
+		},
+		"not_esp": {
+			"title": "不是 ESP",
+			"body": "此分区不是 EFI 系统分区，无法操作。"
+		},
+		"invalid_target": {
+			"title": "找不到目标",
+			"body": "已连接的设备可能发生了变化。请刷新列表后重试。"
+		},
+		"busy": {
+			"title": "正在执行操作",
+			"body": "请等待该设备上的当前操作完成。"
+		},
+		"helper_unavailable": {
+			"title": "无法启动管理员权限辅助进程",
+			"body": "请重新启动应用后重试。"
+		},
+		"not_mounted": {
+			"title": "未挂载",
+			"body": "请刷新列表，确认 ESP 的状态。"
+		},
+		"io": {
+			"title": "操作失败",
+			"body": "读写文件时发生错误。请重试。"
+		}
 	},
 	"modal": {
 		"eject": {

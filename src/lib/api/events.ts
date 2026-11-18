@@ -1,6 +1,6 @@
 // Rustのイベント（listen）の型つきの窓口。戻り値の関数で購読をやめる
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
-import type { BusyState, DeviceSnapshot, LogEntry, Settings } from './types';
+import type { BusyState, DeviceSnapshot, LogEntry, PrivilegedStatus, Settings } from './types';
 
 export function onDevicesChanged(handler: (snapshot: DeviceSnapshot) => void): Promise<UnlistenFn> {
 	return listen<DeviceSnapshot>('devices-changed', (event) => handler(event.payload));
@@ -20,4 +20,8 @@ export function onBusy(handler: (state: BusyState) => void): Promise<UnlistenFn>
 
 export function onSettingsChanged(handler: (settings: Settings) => void): Promise<UnlistenFn> {
 	return listen<Settings>('settings-changed', (event) => handler(event.payload));
+}
+
+export function onPrivilegedStatus(handler: (status: PrivilegedStatus) => void): Promise<UnlistenFn> {
+	return listen<PrivilegedStatus>('privileged-status', (event) => handler(event.payload));
 }

@@ -78,7 +78,10 @@ export interface BusyState {
 	active: boolean;
 }
 
-/** コマンドのエラー。kindを辞書のキーに対応づける */
+/** 補助プロセスの状態（privileged-statusイベント）。認証待ち・実行中をステータスバーに出す */
+export type PrivilegedStatus = 'none' | 'waiting_auth' | 'running';
+
+/** コマンドのエラー。kindを辞書のキーに対応づける（api/errors.ts） */
 export type AppError =
 	| { kind: 'auth_cancelled' }
 	| { kind: 'command_failed'; command: string; stderr: string }

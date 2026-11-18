@@ -1,6 +1,7 @@
 // 現在のロケールの保持と適用。ロケールが変わると、ルートのレイアウトが{#key}で画面を作り直す
 import { baseLocale, getLocale, setLocale, type Locale } from '#lib/paraglide/runtime.js';
 import { systemLocales } from '#lib/api/commands.js';
+import { applyCarbonFonts } from '#lib/theme/carbon_fonts.js';
 import { resolveLocale, type LanguagePreference } from './resolve';
 
 let current = $state<Locale>(getLocale());
@@ -31,6 +32,7 @@ export async function applyLanguage(preference: LanguagePreference): Promise<Loc
 	// 画面は{#key}で作り直すため、文書の再読み込みはしない
 	setLocale(locale, { reload: false });
 	document.documentElement.lang = locale;
+	applyCarbonFonts(locale);
 	current = locale;
 	return locale;
 }

@@ -1,0 +1,19 @@
+// 使うCarbonのアイコン（意味ごとに名前を付けて、ここに集める）
+export { default as refresh } from '@carbon/icons/es/renew/16.js';
+export { default as settings } from '@carbon/icons/es/settings/16.js';
+export { default as log } from '@carbon/icons/es/notebook/16.js';
+export { default as lock } from '@carbon/icons/es/locked/16.js';
+export { default as boot } from '@carbon/icons/es/power/16.js';
+export { default as eject } from '@carbon/icons/es/unplug/16.js';
+export { default as mount } from '@carbon/icons/es/download/16.js';
+export { default as folder } from '@carbon/icons/es/folder--open/16.js';
+export { default as trash } from '@carbon/icons/es/trash-can/16.js';
+export { default as warning } from '@carbon/icons/es/warning--filled/16.js';
+export { default as ok } from '@carbon/icons/es/checkmark--filled/20.js';
+export { default as error } from '@carbon/icons/es/error--filled/20.js';
+export { default as close } from '@carbon/icons/es/close/16.js';
+export { default as chevronRight } from '@carbon/icons/es/chevron--right/16.js';
+export { default as chevronDown } from '@carbon/icons/es/chevron--down/16.js';
+export { default as internalDisk } from '@carbon/icons/es/data-volume/32.js';
+export { default as externalDisk } from '@carbon/icons/es/USB/32.js';
+export { default as diskImage } from '@carbon/icons/es/vmdk-disk/32.js';

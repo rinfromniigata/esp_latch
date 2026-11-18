@@ -17,6 +17,10 @@
         "url": "/",
         "width": 1100,
         "height": 720,
+        "minWidth": 800,
+        "minHeight": 520,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true,
         "resizable": true,
         "fullscreen": false
       }

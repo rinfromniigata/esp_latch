@@ -39,6 +39,10 @@ impl AppWindow {
     }
 }
 
+/// メインウィンドウの最小サイズ（論理ピクセル）。tauri.conf.jsonの`minWidth`・`minHeight`と同じ。
+/// サイドバー（300）と詳細（ESPのタイル1枚が崩れない幅）が収まる値
+const MAIN_MIN_SIZE: (f64, f64) = (800.0, 520.0);
+
 /// ウィンドウを前面に出す（しまってあれば戻し、隠してあれば表示する）
 pub fn bring_to_front(window: &WebviewWindow) -> tauri::Result<()> {
     window.unminimize()?;
@@ -62,12 +66,21 @@ fn open(app: &AppHandle, window: AppWindow, title: &str) -> tauri::Result<()> {
         return bring_to_front(&existing);
     }
     let (width, height) = window.size();
-    let created =
+    let mut builder =
         WebviewWindowBuilder::new(app, window.label(), WebviewUrl::App(window.path().into()))
             .title(title)
-            .inner_size(width, height)
-            .build()?;
-    created.set_focus()
+            .inner_size(width, height);
+    if window == AppWindow::Main {
+        // メインを閉じたあとに開き直した場合も、tauri.conf.jsonの設定と同じにする
+        builder = builder.min_inner_size(MAIN_MIN_SIZE.0, MAIN_MIN_SIZE.1);
+        #[cfg(target_os = "macos")]
+        {
+            builder = builder
+                .title_bar_style(tauri::TitleBarStyle::Overlay)
+                .hidden_title(true);
+        }
+    }
+    builder.build()?.set_focus()
 }
 
 #[cfg(test)]

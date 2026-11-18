@@ -54,6 +54,7 @@
 			}
 		],
 		"esp_none": "No ESP",
+		"more_labels": "+{count} more",
 		"mounted_count": [
 			{
 				"declarations": [
@@ -189,6 +190,35 @@
 		"retry": "Try Again",
 		"show_log": "View Log",
 		"close": "Close"
+	},
+	"error": {
+		"command_failed": {
+			"title": "The command failed"
+		},
+		"not_esp": {
+			"title": "Not an ESP",
+			"body": "This partition isn’t an EFI System Partition, so it can’t be used here."
+		},
+		"invalid_target": {
+			"title": "Target not found",
+			"body": "The connected devices may have changed. Refresh the list and try again."
+		},
+		"busy": {
+			"title": "An operation is in progress",
+			"body": "Wait for the current operation on this device to finish."
+		},
+		"helper_unavailable": {
+			"title": "Couldn’t start the privileged helper",
+			"body": "Restart the app and try again."
+		},
+		"not_mounted": {
+			"title": "Not mounted",
+			"body": "Refresh the list to check the state of the ESP."
+		},
+		"io": {
+			"title": "The operation failed",
+			"body": "An error occurred while reading or writing a file. Try again."
+		}
 	},
 	"modal": {
 		"eject": {
