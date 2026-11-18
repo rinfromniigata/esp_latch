@@ -67,7 +67,7 @@ Phaseの推奨: Opus・high以上
 
 ## Phase 3: メインウィンドウ（一覧と詳細）
 Phaseの推奨: Sonnet・high以上
-引き継ぎ: T3-1〜T3-6、W3-1・W3-2完了（checkは全段階通過）。残りは【ユーザー】のW3-3〜W3-5（目視・実機の確認）。画面の目視は未実施（実機の`tauri dev`は、起動・エラーなし・パニックなしまで。スクリーンショットは権限がなく取れなかった）。ディスクイメージは接続したまま。Carbonの部品の和文書体は、`theme/carbon_fonts.ts`で`IBM Plex Sans`に和文の範囲の`IBM Plex Sans JP`を割り当てて対処（日本語のときだけ）。ブートローダー・空き容量・ゴミ箱の行とボタンの操作はPhase 5。
+引き継ぎ: Phase 3完了（W3-1〜W3-5通過）。次はT4-1（Phase 4はSonnet・high以上）。メインウィンドウの英語・中国語・疑似ロケールの目視はW4-3に移してある（言語の切り替えをT4-1で作るため）。W3-5の実機の確認は「環境なし」。ディスクイメージは接続したまま。画面の目視は未実施（実機の`tauri dev`は、起動・エラーなし・パニックなしまで。スクリーンショットは権限がなく取れなかった）。ディスクイメージは接続したまま。Carbonの部品の和文書体は、`theme/carbon_fonts.ts`で`IBM Plex Sans`に和文の範囲の`IBM Plex Sans JP`を割り当てて対処（日本語のときだけ）。ブートローダー・空き容量・ゴミ箱の行とボタンの操作はPhase 5。
 - [x] T3-1 【エージェント】UIの`api/`（型つきのinvokeとlisten、Rustの型と一致する`types.ts`）と`stores/`（devices・selection・settings・log・privileged・toasts）、`AppError`の種別から辞書のキーへの対応
   - 依存: T2-6
   - 実施: Sonnet・?
