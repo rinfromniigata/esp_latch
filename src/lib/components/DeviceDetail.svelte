@@ -4,7 +4,7 @@
 	import { m } from '#lib/i18n/index.js';
 	import { displayNames, espPartitions, isBootEsp } from '#lib/devices/model.js';
 	import { filterLabel } from '#lib/devices/labels.js';
-	import { deviceStore, selectionStore } from '#lib/stores/index.js';
+	import { deviceStore, espStore, selectionStore } from '#lib/stores/index.js';
 	import DetailHeader from './DetailHeader.svelte';
 	import EmptyState from './EmptyState.svelte';
 	import EspTile from './EspTile.svelte';
@@ -14,6 +14,11 @@
 
 	const device = $derived(selectionStore.selected);
 	const esps = $derived(device ? espPartitions(device) : []);
+
+	// 選んだデバイスが変わる・一覧が更新されるたびに、マウント中のESPの詳細（ブートローダー・容量）を読み直す
+	$effect(() => {
+		void espStore.sync(esps);
+	});
 </script>
 
 {#if deviceStore.loading}

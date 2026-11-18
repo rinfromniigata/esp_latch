@@ -815,10 +815,22 @@ dependencies = [
 [[package]]
 name = "esp_latch_helper"
 version = "0.1.0"
+dependencies = [
+ "esp_latch_protocol",
+ "libc",
+ "plist",
+ "serde",
+ "serde_json",
+ "tempfile",
+]
 
 [[package]]
 name = "esp_latch_protocol"
 version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "fastrand"

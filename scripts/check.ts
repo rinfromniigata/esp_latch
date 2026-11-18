@@ -17,8 +17,10 @@ const STAGES: Stage[] = [
 	{ name: 'lint（eslint）', commands: [['bunx', 'eslint', '.', '--max-warnings', '0']] },
 	{ name: 'テスト（vitest）', commands: [['bunx', 'vitest', 'run']] },
 	{
-		name: 'Rust（fmt・clippy・test）',
+		name: 'Rust（補助プロセスのビルド・fmt・clippy・test）',
 		commands: [
+			// 本体のビルドスクリプト（tauri-build）は、サイドカーの補助プロセスがあることを要求する
+			['bash', 'scripts/build_helper.sh', '--host'],
 			['cargo', 'fmt', '--all', '--check'],
 			['cargo', 'clippy', '--workspace', '--all-targets', '--', '-D', 'warnings'],
 			['cargo', 'test', '--workspace']

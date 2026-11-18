@@ -5,6 +5,7 @@ use tauri::{AppHandle, Emitter};
 
 use crate::domain::DeviceSnapshot;
 use crate::oplog::LogEntry;
+use crate::privileged::PrivilegedStatus;
 use crate::settings::Settings;
 
 /// 操作の種類（`busy`イベントで、どのボタンを処理中にするかに使う）
@@ -34,6 +35,7 @@ pub enum AppEvent {
     LogCleared,
     SettingsChanged(Settings),
     Busy(BusyState),
+    PrivilegedStatus(PrivilegedStatus),
 }
 
 impl AppEvent {
@@ -45,6 +47,7 @@ impl AppEvent {
             Self::LogCleared => "log-cleared",
             Self::SettingsChanged(_) => "settings-changed",
             Self::Busy(_) => "busy",
+            Self::PrivilegedStatus(_) => "privileged-status",
         }
     }
 }
@@ -66,6 +69,7 @@ impl EventSink for TauriEventSink {
             AppEvent::LogCleared => self.0.emit(name, ()),
             AppEvent::SettingsChanged(settings) => self.0.emit(name, settings),
             AppEvent::Busy(state) => self.0.emit(name, state),
+            AppEvent::PrivilegedStatus(status) => self.0.emit(name, status),
         };
         if let Err(error) = result {
             eprintln!("emit {name} failed: {error}");

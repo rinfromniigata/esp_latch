@@ -81,6 +81,12 @@ pub struct MountedSnapshot {
 #[derive(Debug, Default, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct Info {
+    pub device_identifier: Option<String>,
+    pub content: Option<String>,
+    pub mount_point: Option<String>,
+    /// パーティションでは、GPTのパーティションUUID
+    #[serde(rename = "DiskUUID")]
+    pub disk_uuid: Option<String>,
     pub bus_protocol: Option<String>,
     pub internal: Option<bool>,
     pub media_name: Option<String>,

@@ -16,7 +16,7 @@ use std::sync::Arc;
 use serde::de::DeserializeOwned;
 
 use super::raw::{HdiutilInfo, Info, List, ListDisk, ListVolume, non_empty};
-use super::{DeviceListing, DiskInfo, DiskInfoError};
+use super::{DeviceListing, DiskInfo, DiskInfoError, PartitionInfo};
 use crate::domain::{
     ApfsContainer, ApfsVolume, Device, DeviceKind, DiskImage, Partition, PartitionKind,
     PartitionScheme,
@@ -194,6 +194,27 @@ impl DiskInfo for DiskutilAdapter {
             devices,
             command,
             failures,
+        })
+    }
+
+    fn partition(&self, part: &str) -> Result<PartitionInfo, DiskInfoError> {
+        let info: Info = self
+            .run_plist(programs::DISKUTIL, &["info", "-plist", part])
+            .map_err(PlistError::into_disk_info_error)?;
+        if info.device_identifier.as_deref() != Some(part) {
+            return Err(DiskInfoError::Parse {
+                command: display_command(programs::DISKUTIL, &["info", "-plist", part]),
+                message: "unexpected device identifier".into(),
+            });
+        }
+        Ok(PartitionInfo {
+            id: part.to_owned(),
+            is_esp: info
+                .content
+                .as_deref()
+                .is_some_and(|content| partition_kind(content) == PartitionKind::Esp),
+            mount_point: info.mount_point.filter(|path| !path.is_empty()),
+            part_uuid: info.disk_uuid.as_deref().map(str::to_ascii_uppercase),
         })
     }
 }

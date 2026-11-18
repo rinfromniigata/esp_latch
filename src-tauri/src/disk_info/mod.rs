@@ -19,6 +19,16 @@ pub struct DeviceListing {
     pub failures: Vec<CommandFailure>,
 }
 
+/// 1つのパーティションの、操作に使う情報（`diskutil info -plist <part>`を引き直したもの）
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PartitionInfo {
+    pub id: String,
+    pub is_esp: bool,
+    pub mount_point: Option<String>,
+    /// GPTのパーティションUUID（大文字）
+    pub part_uuid: Option<String>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub enum DiskInfoError {
     /// 一覧の取得のコマンドが失敗した
@@ -32,4 +42,7 @@ pub enum DiskInfoError {
 /// ディスク情報の読み取り
 pub trait DiskInfo: Send + Sync {
     fn list_devices(&self) -> Result<DeviceListing, DiskInfoError>;
+
+    /// パーティションの情報を引き直す（操作の直前・直後に使う。一覧の取得とは別に、操作ログには残さない）
+    fn partition(&self, part: &str) -> Result<PartitionInfo, DiskInfoError>;
 }

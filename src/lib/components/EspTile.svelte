@@ -1,10 +1,13 @@
 <script lang="ts">
-	// ESPのタイル（表示）：識別子・名前、「起動に使用」の印、状態（未マウント・マウント中）、容量・形式・マウント先、操作のボタン。
-	// 状態は色だけでなく文字でも示す。ボタンの操作（マウント・取り外し・Finderで開く）は、Phase 5で接続する（それまでは無効）
+	// ESPのタイル：識別子・名前、「起動に使用」の印、状態（未マウント・マウント中）、容量・形式・マウント先・ブートローダー・
+	// 空き容量（マウント中は容量バーとゴミ箱の量）、操作のボタン（マウント・取り外し・Finderで開く、処理中）。
+	// 状態は色だけでなく文字でも示す。ゴミ箱の警告・空きが少ないときの強調・ゴミ箱の操作はPhase 6（S01k）
 	import { m } from '#lib/i18n/index.js';
 	import type { Partition } from '#lib/api/types.js';
 	import { formatBytes } from '#lib/format/index.js';
-	import { EMPTY_VALUE } from '#lib/devices/labels.js';
+	import { EMPTY_VALUE, loaderLabel } from '#lib/devices/labels.js';
+	import { deviceStore, espStore } from '#lib/stores/index.js';
+	import EspUsageBar from './EspUsageBar.svelte';
 	import Icon from './Icon.svelte';
 	import * as icons from './icons';
 
@@ -17,6 +20,13 @@
 	let { partition, boot }: Props = $props();
 
 	const mounted = $derived(partition.mount_point !== null);
+	/** 本体が操作を実行中（認証待ちを含む） */
+	const busy = $derived(deviceStore.isBusy(partition.id));
+	/** マウント中のESPの詳細。読み込むまではundefined */
+	const detail = $derived(mounted ? espStore.detail(partition.id) : undefined);
+	const loader = $derived(
+		detail === undefined ? EMPTY_VALUE : detail.loader ? loaderLabel(detail.loader) : m['esp.loader_none']()
+	);
 </script>
 
 <article class="tile" class:mounted>
@@ -46,19 +56,51 @@
 		<dd class="mono">{partition.filesystem ?? EMPTY_VALUE}</dd>
 		<dt>{m['esp.mount_point']()}</dt>
 		<dd class="mono">{partition.mount_point ?? m['table.not_mounted']()}</dd>
+		<dt>{m['esp.loader']()}</dt>
+		<dd>
+			{#if mounted}{loader}{:else}<span class="muted">{m['esp.loader_unknown']()}</span>{/if}
+		</dd>
+		<dt>{m['esp.free']()}</dt>
+		<dd>
+			{#if !mounted}
+				<span class="muted">{m['esp.free_unknown']()}</span>
+			{:else if detail}
+				<EspUsageBar usage={detail.usage} />
+			{:else}
+				{EMPTY_VALUE}
+			{/if}
+		</dd>
+		{#if mounted}
+			<dt>{m['esp.trash']()}</dt>
+			<dd class="mono">
+				{#if detail === undefined}
+					{EMPTY_VALUE}
+				{:else if detail.usage.trash === null}
+					<span class="muted">{m['esp.unknown']()}</span>
+				{:else if detail.usage.trash > 0}
+					{formatBytes(detail.usage.trash)}
+				{:else}
+					<span class="muted">{m['esp.trash_none']()}</span>
+				{/if}
+			</dd>
+		{/if}
 	</dl>
 	<div class="actions">
-		{#if mounted}
-			<cds-button kind="secondary" size="md" disabled>
+		{#if busy}
+			<cds-button kind="primary" size="md" disabled>
+				<cds-inline-loading class="working" status="active">{m['esp.working']()}</cds-inline-loading>
+			</cds-button>
+		{:else if mounted}
+			<cds-button kind="secondary" size="md" onclick={() => espStore.unmount(partition.id)}>
 				<Icon icon={icons.eject} />
 				{m['esp.unmount']()}
 			</cds-button>
-			<cds-button kind="ghost" size="md" disabled>
+			<cds-button kind="ghost" size="md" onclick={() => espStore.open(partition.id)}>
 				<Icon icon={icons.folder} />
 				{m['esp.open_finder']()}
 			</cds-button>
 		{:else}
-			<cds-button kind="primary" size="md" disabled>
+			<cds-button kind="primary" size="md" onclick={() => espStore.mount(partition.id)}>
 				<Icon icon={icons.mount} />
 				{m['esp.mount']()}
 			</cds-button>
@@ -130,12 +172,28 @@
 
 	.kv dd {
 		margin: 0;
+		min-width: 0;
 		overflow-wrap: anywhere;
+	}
+
+	.mono {
+		font-family: var(--esp-font-mono);
+	}
+
+	.muted {
+		color: var(--cds-text-secondary);
+		font-family: var(--esp-font-sans);
 	}
 
 	.actions {
 		display: flex;
 		flex-wrap: wrap;
 		gap: var(--cds-spacing-03);
+	}
+
+	/* 処理中のボタンの中のローディング。ボタンの文字色にそろえる */
+	.working {
+		min-height: 0;
+		color: inherit;
 	}
 </style>

@@ -3,20 +3,24 @@ pub mod boot;
 mod commands;
 pub mod disk_info;
 pub mod domain;
+pub mod esp;
 pub mod events;
 pub mod monitor;
 pub mod oplog;
+pub mod privileged;
 pub mod runner;
 pub mod settings;
 
 use std::sync::Arc;
 
-use app::AppCore;
+use app::{AppCore, Ports};
 use boot::NvramBootInfo;
 use commands::window::{AppWindow, bring_to_front};
 use disk_info::DiskutilAdapter;
+use esp::EspInspector;
 use events::TauriEventSink;
 use monitor::{DeviceMonitor, apply_auto_refresh};
+use privileged::{HelperGateway, OsascriptLauncher, PrivilegedOps, helper_path};
 use runner::{CommandRunner, SystemRunner};
 use settings::{SETTINGS_FILE, SettingsStore};
 use tauri::{Manager, RunEvent, WindowEvent};
@@ -30,9 +34,23 @@ pub fn run() {
                 events.clone(),
             ));
             let runner: Arc<dyn CommandRunner> = Arc::new(SystemRunner);
+            // 補助プロセスは、最初の特権操作で起動する（管理者の認証）
+            let privileged: Arc<dyn PrivilegedOps> = Arc::new(HelperGateway::new(
+                Box::new(OsascriptLauncher::new(
+                    Arc::clone(&runner),
+                    helper_path()?,
+                    std::process::id(),
+                )),
+                events.clone(),
+            ));
             let core = AppCore::new(
-                Arc::new(DiskutilAdapter::new(Arc::clone(&runner))),
-                Arc::new(NvramBootInfo::new(runner)),
+                Ports {
+                    disk_info: Arc::new(DiskutilAdapter::new(Arc::clone(&runner))),
+                    boot_info: Arc::new(NvramBootInfo::new(Arc::clone(&runner))),
+                    privileged: Arc::clone(&privileged),
+                    inspector: Arc::new(EspInspector),
+                    runner,
+                },
                 events,
             );
             let core = Arc::new(core);
@@ -49,6 +67,7 @@ pub fn run() {
             app.manage(core);
             app.manage(monitor);
             app.manage(settings);
+            app.manage(privileged);
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -56,6 +75,10 @@ pub fn run() {
             commands::app::open_repository,
             commands::devices::list_devices,
             commands::devices::refresh,
+            commands::esp::inspect_esp,
+            commands::esp::mount_esp,
+            commands::esp::open_esp,
+            commands::esp::unmount_esp,
             commands::locale::system_locales,
             commands::log::clear_log,
             commands::log::get_log,
@@ -77,6 +100,12 @@ pub fn run() {
         .expect("error while building tauri application");
 
     app.run(|app, event| {
+        // 終了時に補助プロセスへshutdownを送る（本体のPIDの終了でも補助プロセスは終了する）
+        if let RunEvent::Exit = event
+            && let Some(privileged) = app.try_state::<Arc<dyn PrivilegedOps>>()
+        {
+            privileged.shutdown();
+        }
         // Dockのアイコンを押したとき、見えているウィンドウがなければメインウィンドウを出す
         if let RunEvent::Reopen {
             has_visible_windows: false,

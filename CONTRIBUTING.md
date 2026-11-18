@@ -27,7 +27,7 @@ bun install
 bun run tauri dev
 ```
 
-Viteの開発サーバー（`http://localhost:1420`）が起動し、そのあとにアプリのウィンドウが開きます。
+最初に補助プロセスをこのMacのアーキテクチャ向けにビルドし（`scripts/build_helper.sh --host`）、Viteの開発サーバー（`http://localhost:1420`）が起動したあとに、アプリのウィンドウが開きます。
 
 設定は`~/Library/Application Support/com.rinontech.esp-latch/settings.json`に保存されます。最初に設定を変えるまでファイルは作られません。消すと既定値に戻ります。操作ログはメモリにだけあり、アプリを終了すると消えます。
 
@@ -77,7 +77,7 @@ bun run check
 2. 型検査：`svelte-check`（警告も失敗とする）
 3. lint：`eslint`（警告も失敗とする）
 4. テスト：`vitest run`（`src/`と`scripts/`の`*.spec.ts`）
-5. Rust：`cargo fmt --check`、`cargo clippy --workspace --all-targets -- -D warnings`、`cargo test --workspace`
+5. Rust：補助プロセスのビルド（`scripts/build_helper.sh --host`。本体のビルドに要る）、`cargo fmt --check`、`cargo clippy --workspace --all-targets -- -D warnings`、`cargo test --workspace`
 6. i18n（`scripts/i18n_check.ts`）：ロケール間のキーの過不足、プレースホルダの一致、複数形の区分、未使用キー、`.svelte`・`.ts`の文字列の直書き
    - 画面がまだなく使っていないキーは`scripts/i18n_pending.json`に置きます。画面で使い始めたら、そのキーをここから外します（外し忘れも検出します）
    - やむを得ない直書きは、`scripts/i18n_allowlist.json`にファイル・文字列・理由を書いて許可します
@@ -94,6 +94,19 @@ bun run tauri build --target universal-apple-darwin
 
 Apple silicon・Intelの両方で動く`ESP Latch.app`と`.dmg`が`target/universal-apple-darwin/release/bundle/`にできます。`.app`だけでよい場合は`--bundles app`を付けます。コード署名・公証は行いません。
 
+### 補助プロセス（サイドカー）
+
+root権限で動く補助プロセス`esp-latch-helper`は、本体とは別のバイナリで、`.app`の`Contents/MacOS/`に同梱します（`tauri.conf.json`の`bundle.externalBin`）。`tauri build`・`tauri dev`の前に、`beforeBuildCommand`・`beforeDevCommand`から`scripts/build_helper.sh`が自動で呼ばれます。
+
+```sh
+scripts/build_helper.sh          # aarch64・x86_64をビルドし、lipoでユニバーサルにする
+scripts/build_helper.sh --host   # このMacのアーキテクチャだけ（開発・checkコマンド用）
+```
+
+- できるファイルは`src-tauri/binaries/esp-latch-helper-<ターゲットトリプル>`です（`aarch64-apple-darwin`・`x86_64-apple-darwin`・`universal-apple-darwin`）。Tauriは、本体をビルドするアーキテクチャのトリプルの付いたファイルを要求し、Universalのバンドルにはユニバーサルのファイルを同梱します。ファイルがないと、本体の`cargo build`・`cargo clippy`も失敗します。`src-tauri/binaries/`はリポジトリに含めません
+- 最低OSは本体にそろえて`MACOSX_DEPLOYMENT_TARGET=11.0`でビルドします
+- 同梱されたものが両方のアーキテクチャを含むかは、`lipo -info "target/universal-apple-darwin/release/bundle/macos/ESP Latch.app/Contents/MacOS/esp-latch-helper"`で確かめられます
+
 ## リポジトリの構成
 
 ```
@@ -104,11 +117,11 @@ esp_latch/
 │  ├─ routes/              +layout.ts（ssr=false）、各ウィンドウの画面
 │  └─ lib/                 テーマ・i18n・api・app（ウィンドウ・メニュー）・stores・format・components
 ├─ Cargo.toml              Cargoワークスペース（src-tauri、crates/*）
-├─ src-tauri/              アプリ本体（Rust・Tauri 2）。tauri.conf.json、capabilities/、icons/
+├─ src-tauri/              アプリ本体（Rust・Tauri 2）。tauri.conf.json、capabilities/、icons/、binaries/（ビルドした補助プロセス。リポジトリに含めない）
 ├─ crates/
 │  ├─ esp_latch_protocol/  本体と補助プロセスが共有する要求・応答の型
 │  └─ esp_latch_helper/    root権限で動く補助プロセス（バイナリ名 esp-latch-helper）
-├─ scripts/               checkコマンドと検査のスクリプト、疑似ロケール
+├─ scripts/               checkコマンドと検査のスクリプト、疑似ロケール、補助プロセスのビルド（build_helper.sh）
 ├─ messages/              辞書（ja・en・zh-Hans。jaが正本）
 ├─ project.inlang/        Paraglide（inlang）の設定
 ├─ docs/brand/             ブランドの資料（brand.md・アイコンのマスターSVG）。roadmap/specs/の最新版のコピー

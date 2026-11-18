@@ -9,3 +9,5 @@ import '@carbon/web-components/es/components/data-table/index.js';
 import '@carbon/web-components/es/components/select/index.js';
 import '@carbon/web-components/es/components/toggle/index.js';
 import '@carbon/web-components/es/components/link/index.js';
+import '@carbon/web-components/es/components/notification/index.js';
+import '@carbon/web-components/es/components/inline-loading/index.js';

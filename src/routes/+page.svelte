@@ -5,6 +5,7 @@
 	import StatusBar from '#lib/components/StatusBar.svelte';
 	import DeviceList from '#lib/components/DeviceList.svelte';
 	import DeviceDetail from '#lib/components/DeviceDetail.svelte';
+	import ToastStack from '#lib/components/ToastStack.svelte';
 	import { installAppMenu } from '#lib/app/menu.js';
 	import { retitleCurrentWindow } from '#lib/app/windows.js';
 	import { deviceStore, logStore, privilegedStore, selectionStore } from '#lib/stores/index.js';
@@ -27,6 +28,7 @@
 		<main class="detail"><DeviceDetail /></main>
 	</div>
 	<StatusBar />
+	<ToastStack />
 </div>
 
 <style>

@@ -1,7 +1,6 @@
 //! 外部コマンドの実行。アプリ層と各アダプタは`CommandRunner`だけに依存し、テストでは偽実装を渡す。
 
 use std::io;
-use std::path::Path;
 use std::process::Command;
 
 #[cfg(test)]
@@ -78,49 +77,15 @@ pub mod programs {
     pub const DISKUTIL: &str = "/usr/sbin/diskutil";
     pub const HDIUTIL: &str = "/usr/bin/hdiutil";
     pub const NVRAM: &str = "/usr/sbin/nvram";
+    pub const OPEN: &str = "/usr/bin/open";
 }
 
-/// 操作ログに出すコマンドの文字列。プログラムはファイル名だけにし、空白などを含む引数は単引用符で囲む
-pub fn display_command(program: &str, args: &[&str]) -> String {
-    let name = Path::new(program)
-        .file_name()
-        .and_then(|name| name.to_str())
-        .unwrap_or(program);
-    std::iter::once(name.to_owned())
-        .chain(args.iter().map(|arg| shell_quote(arg)))
-        .collect::<Vec<_>>()
-        .join(" ")
-}
-
-fn shell_quote(arg: &str) -> String {
-    let plain = !arg.is_empty()
-        && arg
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || "-_./:=,+@%".contains(c));
-    if plain {
-        arg.to_owned()
-    } else {
-        format!("'{}'", arg.replace('\'', r"'\''"))
-    }
-}
+/// 操作ログに出すコマンドの文字列（補助プロセスと同じ表記）
+pub use esp_latch_protocol::command::display_command;
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn display_command_uses_file_name_and_quotes() {
-        assert_eq!(
-            display_command(programs::DISKUTIL, &["info", "-plist", "disk2s1"]),
-            "diskutil info -plist disk2s1"
-        );
-        assert_eq!(
-            display_command("/usr/bin/open", &["/Volumes/EFI 1"]),
-            "open '/Volumes/EFI 1'"
-        );
-        assert_eq!(display_command("echo", &["it's"]), r"echo 'it'\''s'");
-        assert_eq!(display_command("echo", &[""]), "echo ''");
-    }
 
     #[test]
     fn system_runner_reports_status_and_stderr() {

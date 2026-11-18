@@ -1,7 +1,9 @@
-//! アプリ層。Tauriコマンドから呼ぶユースケースを、下位のtrait（`DiskInfo`・`BootInfo`・`EventSink`）だけで組み立てる。
+//! アプリ層。Tauriコマンドから呼ぶユースケースを、下位のtrait（`DiskInfo`・`BootInfo`・`PrivilegedOps`・`EspInspect`・
+//! `CommandRunner`・`EventSink`）だけで組み立てる。
 //! Tauriには依存しないため、偽実装を渡して単体テストする。
 
 mod error;
+mod esp;
 mod locks;
 
 use std::sync::{Arc, Mutex, OnceLock};
@@ -12,36 +14,58 @@ pub use locks::{DiskLock, DiskLocks};
 use crate::boot::BootInfo;
 use crate::disk_info::DiskInfo;
 use crate::domain::DeviceSnapshot;
+use crate::esp::EspInspect;
 use crate::events::{AppEvent, BusyState, EventSink, Operation};
 use crate::oplog::{LogEntry, LogResult, OperationLog, now_ms};
+use crate::privileged::PrivilegedOps;
+use crate::runner::CommandRunner;
+
+/// アプリ層が使う下位の実装。テストでは偽実装を渡す
+pub struct Ports {
+    pub disk_info: Arc<dyn DiskInfo>,
+    pub boot_info: Arc<dyn BootInfo>,
+    pub privileged: Arc<dyn PrivilegedOps>,
+    pub inspector: Arc<dyn EspInspect>,
+    /// 一般ユーザーの権限で実行するコマンド（Finderで開く`open`）
+    pub runner: Arc<dyn CommandRunner>,
+}
 
 pub struct AppCore {
-    disk_info: Arc<dyn DiskInfo>,
-    boot_info: Arc<dyn BootInfo>,
+    ports: Ports,
     events: Arc<dyn EventSink>,
     log: OperationLog,
     locks: DiskLocks,
     /// 起動に使ったESPは起動中に変わらないため、最初の取得で1回だけ読む
     boot_part_uuid: OnceLock<Option<String>>,
+    /// 起動に使ったOpenCoreの版（NVRAM）。起動中に変わらないため1回だけ読む
+    opencore_version: OnceLock<Option<String>>,
     /// 最後に取得した一覧。再取得は同時に1つだけにする（ロックを兼ねる）
     snapshot: Mutex<Option<DeviceSnapshot>>,
 }
 
 impl AppCore {
-    pub fn new(
-        disk_info: Arc<dyn DiskInfo>,
-        boot_info: Arc<dyn BootInfo>,
-        events: Arc<dyn EventSink>,
-    ) -> Self {
+    pub fn new(ports: Ports, events: Arc<dyn EventSink>) -> Self {
         Self {
-            disk_info,
-            boot_info,
+            ports,
             log: OperationLog::new(Arc::clone(&events)),
             events,
             locks: DiskLocks::default(),
             boot_part_uuid: OnceLock::new(),
+            opencore_version: OnceLock::new(),
             snapshot: Mutex::new(None),
         }
+    }
+
+    fn boot_part_uuid(&self) -> Option<String> {
+        self.boot_part_uuid
+            .get_or_init(|| self.ports.boot_info.boot_part_uuid())
+            .clone()
+    }
+
+    fn opencore_version(&self) -> Option<String> {
+        self.opencore_version
+            .get_or_init(|| self.ports.boot_info.opencore_version())
+            .clone()
     }
 
     pub fn log(&self) -> &OperationLog {
@@ -71,7 +95,7 @@ impl AppCore {
 
     /// 一覧の取得1回分。操作ログには`diskutil list -plist`の1行と、途中で失敗したコマンドだけを残す
     fn load(&self) -> Result<DeviceSnapshot, AppError> {
-        let listing = match self.disk_info.list_devices() {
+        let listing = match self.ports.disk_info.list_devices() {
             Ok(listing) => listing,
             Err(error) => {
                 let error = AppError::from(error);
@@ -87,10 +111,7 @@ impl AppCore {
         }
         Ok(DeviceSnapshot {
             devices: listing.devices,
-            boot_part_uuid: self
-                .boot_part_uuid
-                .get_or_init(|| self.boot_info.boot_part_uuid())
-                .clone(),
+            boot_part_uuid: self.boot_part_uuid(),
             taken_at: now_ms(),
         })
     }

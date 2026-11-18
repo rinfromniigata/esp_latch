@@ -8,11 +8,16 @@ use crate::runner::{CommandRunner, programs};
 
 /// OpenCoreのベンダーGUIDの`boot-path`（例：`PciRoot(0x0)/…/HD(1,GPT,<UUID>,0x28,0x64000)/\EFI\OC\OpenCore.efi`）
 const BOOT_PATH_VARIABLE: &str = "4D1FDA02-38C7-4A6A-9CC6-4BCCA8B30102:boot-path";
+/// OpenCoreが書く起動中の版（`REL-108-2026-09-28`）
+const OPENCORE_VERSION_VARIABLE: &str = "4D1FDA02-38C7-4A6A-9CC6-4BCCA8B30102:opencore-version";
 
 /// 起動に使ったパーティションの情報
 pub trait BootInfo: Send + Sync {
     /// 起動に使ったESPのGPTのパーティションUUID（大文字）。分からなければ`None`
     fn boot_part_uuid(&self) -> Option<String>;
+
+    /// 起動に使ったOpenCoreのビルドの文字列（`REL-108-2026-09-28`）。OpenCoreで起動していなければ`None`
+    fn opencore_version(&self) -> Option<String>;
 }
 
 pub struct NvramBootInfo {
@@ -33,6 +38,18 @@ impl BootInfo for NvramBootInfo {
             .run_checked(programs::NVRAM, &[BOOT_PATH_VARIABLE])
             .ok()?;
         parse_boot_path(&String::from_utf8_lossy(&output.stdout))
+    }
+
+    fn opencore_version(&self) -> Option<String> {
+        let output = self
+            .runner
+            .run_checked(programs::NVRAM, &[OPENCORE_VERSION_VARIABLE])
+            .ok()?;
+        let text = String::from_utf8_lossy(&output.stdout);
+        let value = text.split_once('\t').map_or(&*text, |(_, value)| value);
+        // 値の末尾にNULが%00で付くことがある
+        let value = value.trim().trim_end_matches("%00");
+        (!value.is_empty()).then(|| value.to_owned())
     }
 }
 
@@ -114,6 +131,24 @@ mod tests {
         );
         assert_eq!(parse_boot_path("HD(1,GPT,not-a-uuid,0x28)"), None);
         assert_eq!(parse_boot_path(""), None);
+    }
+
+    #[test]
+    fn reads_opencore_version() {
+        let runner = FakeRunner::new();
+        runner.respond(
+            "nvram 4D1FDA02-38C7-4A6A-9CC6-4BCCA8B30102:opencore-version",
+            0,
+            b"4D1FDA02-38C7-4A6A-9CC6-4BCCA8B30102:opencore-version\tREL-108-2026-09-28%00\n",
+            "",
+        );
+        let info = NvramBootInfo::new(Arc::new(runner));
+        assert_eq!(
+            info.opencore_version().as_deref(),
+            Some("REL-108-2026-09-28")
+        );
+        let info = NvramBootInfo::new(Arc::new(FakeRunner::new()));
+        assert_eq!(info.opencore_version(), None);
     }
 
     #[test]

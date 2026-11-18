@@ -12,3 +12,11 @@ name = "esp-latch-helper"
 path = "src/main.rs"
 
 [dependencies]
+esp_latch_protocol = { path = "../esp_latch_protocol" }
+serde.workspace = true
+serde_json.workspace = true
+plist = "1.10"
+libc = "0.2"
+
+[dev-dependencies]
+tempfile = "3"

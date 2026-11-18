@@ -4,15 +4,36 @@
 //! `cargo run -p esp_latch --example dump_devices`
 //!
 //! `-- --watch`を付けると、続けてディスクの変化を検知し、再取得のたびに各デバイスの1行の要約を出す（Ctrl-Cで終了）。
+//! `-- --inspect disk4s1`を付けると、マウント中のESPの詳細（`inspect_esp`の結果）を出す。特権操作は使わない。
 
 use std::sync::Arc;
 
-use esp_latch_lib::app::AppCore;
+use esp_latch_lib::app::{AppCore, Ports};
 use esp_latch_lib::boot::NvramBootInfo;
 use esp_latch_lib::disk_info::DiskutilAdapter;
+use esp_latch_lib::esp::EspInspector;
 use esp_latch_lib::events::{AppEvent, EventSink};
 use esp_latch_lib::monitor::DeviceMonitor;
+use esp_latch_lib::privileged::{
+    Op, PrivilegedError, PrivilegedErrorKind, PrivilegedOps, PrivilegedReply,
+};
 use esp_latch_lib::runner::{CommandRunner, SystemRunner};
+
+/// 特権操作は使わない（認証のダイアログを出さない）
+struct NoPrivileged;
+
+impl PrivilegedOps for NoPrivileged {
+    fn execute(&self, _: Op) -> Result<PrivilegedReply, PrivilegedError> {
+        Err(PrivilegedError {
+            kind: PrivilegedErrorKind::Unavailable {
+                message: "not available in this example".into(),
+            },
+            launch: None,
+        })
+    }
+
+    fn shutdown(&self) {}
+}
 
 struct StderrSink;
 
@@ -44,10 +65,33 @@ impl EventSink for StderrSink {
 fn main() {
     let runner: Arc<dyn CommandRunner> = Arc::new(SystemRunner);
     let core = Arc::new(AppCore::new(
-        Arc::new(DiskutilAdapter::new(Arc::clone(&runner))),
-        Arc::new(NvramBootInfo::new(runner)),
+        Ports {
+            disk_info: Arc::new(DiskutilAdapter::new(Arc::clone(&runner))),
+            boot_info: Arc::new(NvramBootInfo::new(Arc::clone(&runner))),
+            privileged: Arc::new(NoPrivileged),
+            inspector: Arc::new(EspInspector),
+            runner,
+        },
         Arc::new(StderrSink),
     ));
+    let args: Vec<String> = std::env::args().collect();
+    if let Some(part) = args
+        .iter()
+        .position(|arg| arg == "--inspect")
+        .and_then(|index| args.get(index + 1))
+    {
+        match core.inspect_esp(part) {
+            Ok(detail) => println!(
+                "{}",
+                serde_json::to_string_pretty(&detail).expect("serialize")
+            ),
+            Err(error) => {
+                eprintln!("error: {error}");
+                std::process::exit(1);
+            }
+        }
+        return;
+    }
     let started = std::time::Instant::now();
     match core.list_devices() {
         Ok(snapshot) => {

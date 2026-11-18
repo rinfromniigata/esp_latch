@@ -1,6 +1,6 @@
 // Rustのコマンド（invoke）の型つきの窓口。UIからはここを通してだけ呼ぶ
 import { invoke } from '@tauri-apps/api/core';
-import type { DeviceSnapshot, LogEntry, Settings, SettingsPatch } from './types';
+import type { DeviceSnapshot, EspDetail, LogEntry, Settings, SettingsPatch } from './types';
 
 /** OSの優先言語（優先順のBCP 47の言語タグ） */
 export function systemLocales(): Promise<string[]> {
@@ -22,6 +22,26 @@ export function listDevices(): Promise<DeviceSnapshot> {
 /** 再取得して devices-changed を出す */
 export function refresh(): Promise<void> {
 	return invoke('refresh');
+}
+
+/** マウント中のESPの詳細（ブートローダー、容量） */
+export function inspectEsp(part: string): Promise<EspDetail> {
+	return invoke<EspDetail>('inspect_esp', { part });
+}
+
+/** ESPをマウントする。初回は管理者の認証が出る。設定に従ってFinderで開く */
+export function mountEsp(part: string): Promise<EspDetail> {
+	return invoke<EspDetail>('mount_esp', { part });
+}
+
+/** マウント中のESPを取り外す */
+export function unmountEsp(part: string): Promise<void> {
+	return invoke('unmount_esp', { part });
+}
+
+/** マウント中のESPをFinderで開く */
+export function openEsp(part: string): Promise<void> {
+	return invoke('open_esp', { part });
 }
 
 export function getLog(): Promise<LogEntry[]> {

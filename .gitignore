@@ -9,6 +9,7 @@ vite.config.ts.timestamp-*
 # Rust・Tauri
 /target
 /src-tauri/gen/schemas
+/src-tauri/binaries
 
 # OS
 .DS_Store

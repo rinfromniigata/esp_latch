@@ -115,6 +115,41 @@ pub struct DeviceSnapshot {
     pub taken_at: u64,
 }
 
+/// ESPの中のブートローダーの種類
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum LoaderName {
+    Opencore,
+    Clover,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct BootLoader {
+    pub name: LoaderName,
+    /// 版（OpenCoreは`1.0.8`、Cloverは`r5176`）。読めなければ`None`
+    pub version: Option<String>,
+}
+
+/// ESPの容量（バイト数）。読めない値は`None`
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct EspUsage {
+    pub total: Option<u64>,
+    pub free: Option<u64>,
+    /// ゴミ箱（`.Trashes`）が占めている量
+    pub trash: Option<u64>,
+}
+
+/// マウント中のESPの詳細（S01a・S01k）
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct EspDetail {
+    /// パーティションのBSD名（`disk2s1`）
+    pub part: String,
+    pub mount_point: String,
+    /// ブートローダー。見つからなければ`None`
+    pub loader: Option<BootLoader>,
+    pub usage: EspUsage,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

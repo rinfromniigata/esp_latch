@@ -61,6 +61,30 @@ export interface DeviceSnapshot {
 	taken_at: number;
 }
 
+export type LoaderName = 'opencore' | 'clover';
+
+export interface BootLoader {
+	name: LoaderName;
+	/** 版（OpenCoreは1.0.8、Cloverはr5176）。読めなければnull */
+	version: string | null;
+}
+
+/** ESPの容量（バイト数）。読めない値はnull */
+export interface EspUsage {
+	total: number | null;
+	free: number | null;
+	/** ゴミ箱（.Trashes）が占めている量 */
+	trash: number | null;
+}
+
+/** マウント中のESPの詳細（inspect_esp・mount_espの結果） */
+export interface EspDetail {
+	part: string;
+	mount_point: string;
+	loader: BootLoader | null;
+	usage: EspUsage;
+}
+
 export type LogResult = 'ok' | 'fail' | 'cancelled';
 
 export interface LogEntry {

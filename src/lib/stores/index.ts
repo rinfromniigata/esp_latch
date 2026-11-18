@@ -4,4 +4,5 @@ export { selectionStore } from './selection.svelte';
 export { settingsStore, DEFAULT_SETTINGS } from './settings.svelte';
 export { logStore, LOG_LIMIT } from './log.svelte';
 export { privilegedStore } from './privileged.svelte';
+export { espStore, errorActions, SUCCESS_TOAST_MS } from './esp.svelte';
 export { toastStore, type Toast, type ToastActionId, type ToastKind } from './toasts.svelte';

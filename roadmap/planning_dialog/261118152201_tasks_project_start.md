@@ -114,22 +114,35 @@ Phaseの推奨: Sonnet・high以上
 
 ## Phase 5: 特権操作とESPのマウント・取り外し
 Phaseの推奨: Opus・high以上
-- [ ] T5-1 【エージェント】`esp_latch_protocol`（要求・応答の型、BSD名の検証）と補助プロセス`esp-latch-helper`：一時ディレクトリとトークンの検査、ソケット（所有者とパーミッション、`getpeereid`）、本体のPIDの監視、許可リストの操作（`mount_esp`のフォールバックを含む、`unmount_esp`、`eject_disk`、`empty_trash`、`shutdown`）とESPであることの確認（imple 5章）。不正な入力を含めた単体テスト
+引き継ぎ: T5-1〜T5-6完了、checkコマンド通過。次はW5-1。OpenCoreの版は配布版のファイルから読めない（T5-4の実施メモ）ため、起動に使ったESP以外のOpenCoreは版なしで出る（W5-7で確かめる。要件との差の扱いはユーザーの判断待ち）。Homebrewのrustupは`PATH`の先頭に`/opt/homebrew/opt/rustup/bin`が要る。テスト用イメージ（disk4・disk6）は接続したまま、ESPは取り外してある。
+- [x] T5-1 【エージェント】`esp_latch_protocol`（要求・応答の型、BSD名の検証）と補助プロセス`esp-latch-helper`：一時ディレクトリとトークンの検査、ソケット（所有者とパーミッション、`getpeereid`）、本体のPIDの監視、許可リストの操作（`mount_esp`のフォールバックを含む、`unmount_esp`、`eject_disk`、`empty_trash`、`shutdown`）とESPであることの確認（imple 5章）。不正な入力を含めた単体テスト
   - 依存: T2-6
-- [ ] T5-2 【エージェント】`scripts/build_helper.sh`：補助プロセスをアーキテクチャごとにビルドしてlipoでユニバーサルにし、`externalBin`の命名で`src-tauri/binaries/`に置く。Tauriのビルドの前に呼ぶ。`CONTRIBUTING.md`を更新する
+  - 実施: Opus・high
+  - 操作ログの表記（`display_command`）は補助プロセスと共有するため`esp_latch_protocol::command`へ移した。`.Trashes`の削除はfdからの`openat`・`unlinkat`で行い、パスをたどらない。`mount_esp`がすでにマウント中なら何も実行しない。フォールバックが失敗したときの通知は`diskutil mount`のエラー。補助プロセスを実際に起動する結合テスト（`tests/process.rs`：トークン・終了の要求・本体の終了・開いたディレクトリ）を追加
+- [x] T5-2 【エージェント】`scripts/build_helper.sh`：補助プロセスをアーキテクチャごとにビルドしてlipoでユニバーサルにし、`externalBin`の命名で`src-tauri/binaries/`に置く。Tauriのビルドの前に呼ぶ。`CONTRIBUTING.md`を更新する
   - 推奨: Sonnet・high以上
   - 依存: T5-1
-- [ ] T5-3 【エージェント】`HelperGateway`（osascriptでの起動、エラー-128の判定、ソケットの待ち受けと接続、`privileged-status`、終了時の`shutdown`）と`FakePrivilegedOps`
+  - 実施: Opus・high
+  - tauri-build 2.7.5は本体をビルドするトリプルの付いたファイルを要求し（ないと`cargo clippy`も失敗）、bundler 2.10.4はUniversalで`-universal-apple-darwin`を同梱する（インストール済みのソースで確認）。そのため3つ（aarch64・x86_64・universal）を作り、`--host`でこのMacの分だけも作れるようにした。`beforeDevCommand`・`beforeBuildCommand`とcheckコマンドのRustの段階の先頭から呼ぶ。`MACOSX_DEPLOYMENT_TARGET=11.0`。`src-tauri/binaries/`は`.gitignore`に追加
+- [x] T5-3 【エージェント】`HelperGateway`（osascriptでの起動、エラー-128の判定、ソケットの待ち受けと接続、`privileged-status`、終了時の`shutdown`）と`FakePrivilegedOps`
   - 依存: T5-2
-- [ ] T5-4 【エージェント】`EspInspector`：ブートローダーと版の検出（実物のバイナリで版の文字列の形式を確かめ、バイト列のフィクスチャで単体テスト）、空き容量と`.Trashes`の量
+  - 実施: Opus・high
+  - 起動は`HelperLauncher`（実装は`OsascriptLauncher`）に分け、テストではスレッドで補助プロセスの代わりを立てる。要求は同時に1つだけ送る（同時の要求でも認証は1回）。前回の補助プロセスが終了していて要求が届かなければ、1回だけ起動し直す。起動のコマンドは、この呼び出しで起動したときだけ`launch`で返し（キャンセルは`cancelled`）、アプリ層が操作ログに記録する。補助プロセスのパスは本体の実行ファイルと同じ場所。`RunEvent::Exit`で`shutdown`
+- [x] T5-4 【エージェント】`EspInspector`：ブートローダーと版の検出（実物のバイナリで版の文字列の形式を確かめ、バイト列のフィクスチャで単体テスト）、空き容量と`.Trashes`の量
   - 推奨: Sonnet・high以上
   - 依存: T5-3
-- [ ] T5-5 【エージェント】ユースケース：`mount_esp`（設定に従ってFinderで開く）・`unmount_esp`・`open_esp`・`inspect_esp`、補助プロセスが返したコマンドの記録、`busy`。偽実装で単体テスト
+  - 実施: Opus・high
+  - 実物（OpenCore 1.0.8のRELEASE・DEBUG、Clover r5176の配布版）を調べた結果：Cloverは`Clover revision: 5176 (…)`の文字列から`r5176`を得る。OpenCoreのファイルには`REL-XXX-YYYY-MM-DD`の雛形しかなく、版は起動時に組み立てられるため、ファイルからは読めない。ファイルに`REL-108-…`の形があれば読み、なければ起動に使ったESPに限ってNVRAMの`opencore-version`を使う（それ以外のOpenCoreのESPは版なし）。フィクスチャは版の文字列の前後だけを切り出した`src-tauri/fixtures/bootloader/`。ゴミ箱の量は割り当てブロックの合計（FATでも`st_blocks`は512バイト単位で返ることを、テスト用イメージで確認）
+- [x] T5-5 【エージェント】ユースケース：`mount_esp`（設定に従ってFinderで開く）・`unmount_esp`・`open_esp`・`inspect_esp`、補助プロセスが返したコマンドの記録、`busy`。偽実装で単体テスト
   - 依存: T5-4
-- [ ] T5-6 【エージェント】UI：ESPのタイルの操作（マウント・取り外し・Finderで開く、処理中）、ブートローダーと容量の表示、ステータスバー（管理者権限で実行中・認証待ち）、通知（マウントの成功、認証のキャンセルと再試行、マウントの失敗とコマンド・ログを見る）
+  - 実施: Opus・high
+  - `AppCore::new`は下位の実装を`Ports`でまとめて受け取る形にした。パーティションの引き直しは`DiskInfo::partition`（`diskutil info -plist`。操作ログには残さない）。マウント・取り外しのあとは処理中のまま一覧を取得し直す（取り外しは失敗時も）。Finderで開けなくてもマウントは成功として扱い、`open`の失敗はログに残す。`dump_devices`の例に`--inspect <part>`を追加し、テスト用イメージのESPで詳細を取れることを確認
+- [x] T5-6 【エージェント】UI：ESPのタイルの操作（マウント・取り外し・Finderで開く、処理中）、ブートローダーと容量の表示、ステータスバー（管理者権限で実行中・認証待ち）、通知（マウントの成功、認証のキャンセルと再試行、マウントの失敗とコマンド・ログを見る）
   - 推奨: Sonnet・high以上
   - 依存: T5-5
   - 画面: S01a, S01f, S01g, S01h
+  - 実施: Opus・high
+  - `espStore`（詳細の保持と操作・通知）、`ToastStack`（Carbonの`cds-toast-notification`。コマンドは原文、先頭の`$`はCSSで付ける）、`EspUsageBar`（独自の部品）。処理中は本体の`busy`で、認証待ちの間も「処理中…」（`cds-inline-loading`）。タイルはモックどおり未マウントでもブートローダー・空き容量の行を出す（「マウントすると確認できます」）。ゴミ箱の行はマウント中だけ。ゴミ箱の警告・空きの強調・ゴミ箱のボタンはPhase 6。モックの辞書になかった`esp.loader_none`（モックが参照）と、`esp.loader_with_version`・`esp.unknown`（読めない値の「不明」）を3言語で追加。`tauri dev`で起動・エラーなし・パニックなしまで確認（認証を伴う操作と画面の目視は未実施）
 
 ## Phase 6: 取り出しとESPのゴミ箱
 Phaseの推奨: Sonnet・high以上
