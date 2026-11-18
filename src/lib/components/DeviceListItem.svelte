@@ -3,6 +3,7 @@
 	import { m } from '#lib/i18n/index.js';
 	import type { Device } from '#lib/api/types.js';
 	import { displayNames } from '#lib/devices/model.js';
+	import { formatBytes } from '#lib/format/index.js';
 	import DeviceTags from './DeviceTags.svelte';
 	import Icon from './Icon.svelte';
 	import PartitionMiniBar from './PartitionMiniBar.svelte';
@@ -37,6 +38,8 @@
 			{#if device.image?.stored_on}
 				<span>({m['device.on_store']({ store: device.image.stored_on })})</span>
 			{/if}
+			<span>·</span>
+			<span class="mono">{formatBytes(device.size)}</span>
 		</span>
 		<DeviceTags {device} />
 		<PartitionMiniBar {device} />
