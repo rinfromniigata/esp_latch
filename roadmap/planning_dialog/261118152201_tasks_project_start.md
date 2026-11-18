@@ -4,24 +4,36 @@
 
 ## Phase 1: 基盤（雛形・テーマ・i18n・checkコマンド）
 Phaseの推奨: Sonnet・high以上
-- [ ] T1-1 【エージェント】プロジェクトの雛形を作る：SvelteKit（`adapter-static`、`ssr = false`のSPA）＋Tauri 2＋Bun。Cargoワークスペース（`src-tauri`、`crates/esp_latch_protocol`、`crates/esp_latch_helper`の空の骨格）。識別子`com.rinontech.esp-latch`、表示名ESP Latch、メインウィンドウ1100×720、`minimumSystemVersion`。rustupに`aarch64-apple-darwin`と`x86_64-apple-darwin`を入れ、Universalのビルドが通るところまで
+引き継ぎ: T1-1〜T1-7完了。次はW1-1。RustはHomebrewの`rustup`（keg-only）で、`PATH`の先頭に`/opt/homebrew/opt/rustup/bin`が要る（ユーザーが`~/.zshrc`に追記）。Carbonの部品はShadow DOM内で`IBM Plex Sans`を直書きしており和文がsystem-uiになる点は、Phase 3で扱う
+- [x] T1-1 【エージェント】プロジェクトの雛形を作る：SvelteKit（`adapter-static`、`ssr = false`のSPA）＋Tauri 2＋Bun。Cargoワークスペース（`src-tauri`、`crates/esp_latch_protocol`、`crates/esp_latch_helper`の空の骨格）。識別子`com.rinontech.esp-latch`、表示名ESP Latch、メインウィンドウ1100×720、`minimumSystemVersion`。rustupに`aarch64-apple-darwin`と`x86_64-apple-darwin`を入れ、Universalのビルドが通るところまで
   - SvelteKit 3が安定版なら、Tauri公式のSvelteKitの手順との差を確かめて版を選ぶ（imple 2章）
-- [ ] T1-2 【エージェント】`CONTRIBUTING.md`の骨格（受け付け方針、開発環境、セットアップ、起動のコマンド、リポジトリ構成と`roadmap/`・`docs/brand/`の役割）
+  - 実施: Opus・?
+  - SvelteKit 3.3（安定版）を採用。Tauri公式手順（2.20時点）のadapter-static・`fallback: 'index.html'`・`ssr = false`はそのまま使え、差は`svelte.config.js`の廃止（`vite.config.ts`の`sveltekit()`へ）とTypeScript 6・Vite 8の要件だけ。Homebrewのrustをrustupに置き換えた
+- [x] T1-2 【エージェント】`CONTRIBUTING.md`の骨格（受け付け方針、開発環境、セットアップ、起動のコマンド、リポジトリ構成と`roadmap/`・`docs/brand/`の役割）
   - 推奨: Sonnet・medium以上
   - 依存: T1-1
+  - 実施: Opus・?
 - [x] T1-3 【ユーザー】claude.aiでトークンのコントラスト（ライトの`--esp-state-mounted`、ダークの`--cds-button-primary`・`-hover`）を調整し、改訂版プランアセットをリポジトリルートに置く
   - 実施: ユーザー（claude.ai）。プランアセット v2として取り込み済み ← development/261118152033_change_token_contrast.md
-- [ ] T1-4 【エージェント】Carbon Design Systemの導入とテーマの設定：`@carbon/web-components` 2.xを導入し、g10・g100の土台を`[data-theme]`に当て、`specs/`の`tokens.css`を`src/lib/theme/tokens.css`へコピーして上書きさせる。外観（システム・ライト・ダーク）の切り替えの仕組み。IBM Plex Sans・Sans JP・Monoを同梱する（CDNを使わない）。`brand.md`とマスターSVGを`docs/brand/`へコピーする
+- [x] T1-4 【エージェント】Carbon Design Systemの導入とテーマの設定：`@carbon/web-components` 2.xを導入し、g10・g100の土台を`[data-theme]`に当て、`specs/`の`tokens.css`を`src/lib/theme/tokens.css`へコピーして上書きさせる。外観（システム・ライト・ダーク）の切り替えの仕組み。IBM Plex Sans・Sans JP・Monoを同梱する（CDNを使わない）。`brand.md`とマスターSVGを`docs/brand/`へコピーする
   - 依存: T1-1, T1-3
-- [ ] T1-5 【エージェント】i18nの基盤：Paraglide JS 2を導入し、3つのモックの辞書を`messages/{ja,en,zh-Hans}.json`へ移す（複数形の形をそろえる）。ロケールの判定・保持・フォールバック、`<html lang>`、ロケールごとの書体、Carbonの部品への文言の受け渡し、`Intl`による整形の関数、疑似ロケール（開発時だけ）
+  - 実施: Opus・?
+  - `@carbon/web-components` 2.67.0。土台は`carbon_theme.scss`（`@carbon/styles`の`_zone.scss`にならい`[data-theme]`へ出力。値をファイルに持たないためSCSSにした）。Carbonの部品はShadow DOM内で`IBM Plex Sans`を直書きしているため、ja・zh-Hansの和文はsystem-uiで出る。Phase 3で部品に当てるときに扱う
+- [x] T1-5 【エージェント】i18nの基盤：Paraglide JS 2を導入し、3つのモックの辞書を`messages/{ja,en,zh-Hans}.json`へ移す（複数形の形をそろえる）。ロケールの判定・保持・フォールバック、`<html lang>`、ロケールごとの書体、Carbonの部品への文言の受け渡し、`Intl`による整形の関数、疑似ロケール（開発時だけ）
   - 推奨: Opus・high以上
   - 依存: T1-4
-- [ ] T1-6 【エージェント】checkコマンド`bun run check`：型検査・lint・テスト（TypeScriptとRust）、i18nの自動検査、トークンと`docs/brand/`のコピーの一致、色・サイズの直書きの検出を1つにまとめ、失敗した段階だけを表示する（imple 9章）。`CONTRIBUTING.md`に追記する
+  - 実施: Opus・?
+  - Paraglide JS 2.29.3（3.xは11月3日に出たばかりのMAJORのため、スペックどおり2系）。キーの衝突を避けるため`settings.language`・`settings.theme`を`*.label`に改めた（キー設計は委任事項）。OSの優先言語はWebViewでなくRust（sys-locale）から読む
+- [x] T1-6 【エージェント】checkコマンド`bun run check`：型検査・lint・テスト（TypeScriptとRust）、i18nの自動検査、トークンと`docs/brand/`のコピーの一致、色・サイズの直書きの検出を1つにまとめ、失敗した段階だけを表示する（imple 9章）。`CONTRIBUTING.md`に追記する
   - 推奨: Opus・high以上
   - 依存: T1-5
-- [ ] T1-7 【エージェント】アプリの骨格：メイン・設定・操作ログの3つのウィンドウ（`open_window`。2つ目は作らず前面に出す）、アプリメニュー（「設定…」⌘,を含む。文言は辞書から作り、ロケールの変更で作り直す）、各ウィンドウの空の枠
+  - 実施: Opus・?
+  - 未使用キーは、画面がまだない分を`scripts/i18n_pending.json`に置いて許す（使い始めたら外す）。検査で見つかったenの`device.mounted_count`の`one`の不足を補った
+- [x] T1-7 【エージェント】アプリの骨格：メイン・設定・操作ログの3つのウィンドウ（`open_window`。2つ目は作らず前面に出す）、アプリメニュー（「設定…」⌘,を含む。文言は辞書から作り、ロケールの変更で作り直す）、各ウィンドウの空の枠
   - 依存: T1-6
   - 画面の中身はPhase 3・4で実装する
+  - 実施: Opus・?
+  - メインウィンドウは閉じても隠すだけにした（アプリメニューを組み立てる役を持つため。Dockのクリックとウインドウメニューで再表示）。メニュー用のキー（`menu.*`）を辞書に追加。Carbonの部品への誤検知のa11y警告2種を`cds-*`に限って外した
 
 ## Phase 2: ディスク情報とアプリ層（読み取りと設定）
 Phaseの推奨: Opus・high以上

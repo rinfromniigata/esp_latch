@@ -1,0 +1,75 @@
+// Carbonのテーマの土台：ライトはg10、ダークはg100を、<html data-theme>に当てる。
+// あわせて、テーマによらない余白（--cds-spacing-*）と文字の型（--cds-body-01-font-size など）を:rootに出す。
+// 値は@carbon/stylesから出力し、ここには書かない。ブランドの上書きは、このあとに読み込むtokens.cssが行う。
+// 出力の仕方は@carbon/styles/scss/_zone.scss（テーマのゾーン）にならい、セレクターだけを[data-theme]に変えている。
+
+@use 'sass:map';
+@use 'sass:meta';
+@use '@carbon/styles/scss/themes';
+@use '@carbon/styles/scss/theme';
+@use '@carbon/styles/scss/spacing';
+@use '@carbon/styles/scss/type';
+@use '@carbon/styles/scss/layer/layer-tokens';
+@use '@carbon/styles/scss/utilities/custom-property';
+@use '@carbon/styles/scss/components/button/tokens' as button;
+@use '@carbon/styles/scss/components/notification/tokens' as notification;
+@use '@carbon/styles/scss/components/tag/tokens' as tag;
+@use '@carbon/styles/scss/components/icon-indicator/tokens' as icon-indicator;
+@use '@carbon/styles/scss/components/content-switcher/tokens' as content-switcher;
+
+$-components: (
+  button.$button-tokens,
+  notification.$notification-tokens,
+  tag.$tag-tokens,
+  icon-indicator.$status-tokens,
+  content-switcher.$content-switcher-tokens
+);
+
+@mixin -emit($theme) {
+  @each $key, $value in $theme {
+    @if $key == 'color-scheme' {
+      @include custom-property.declaration($key, $value);
+
+      color-scheme: custom-property.get-var($key, $value);
+    } @else if meta.type-of($value) == color {
+      @include custom-property.declaration($key, $value);
+    }
+  }
+
+  @include layer-tokens.emit-layer-tokens(1);
+
+  @each $group in $-components {
+    @each $key, $value in $group {
+      @if meta.type-of($value) == map {
+        @each $theme-value in map.get($value, values) {
+          $v: map.get($theme-value, value);
+
+          @if theme.matches(map.get($theme-value, theme), $theme) and meta.type-of($v) == color {
+            @include custom-property.declaration($key, $v);
+          }
+        }
+      } @else if meta.type-of($value) == color {
+        @include custom-property.declaration($key, $value);
+      }
+    }
+  }
+}
+
+// 余白と文字の型（独自の部品も、これを参照して値を直書きしない）
+:root {
+  @each $name, $value in spacing.$spacing {
+    --cds-#{$name}: #{$value};
+  }
+
+  @include type.emit-type-custom-properties();
+}
+
+// tokens.cssと同じく、data-themeが付く前の既定はライト
+:root,
+[data-theme='light'] {
+  @include -emit(themes.$g10);
+}
+
+[data-theme='dark'] {
+  @include -emit(themes.$g100);
+}

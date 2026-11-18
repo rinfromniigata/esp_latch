@@ -1,1 +1,19 @@
 roadmap/archived/
+
+# Node・SvelteKit
+node_modules
+/.svelte-kit
+/build
+vite.config.ts.timestamp-*
+
+# Rust・Tauri
+/target
+/src-tauri/gen/schemas
+
+# OS
+.DS_Store
+
+# Env
+.env
+.env.*
+!.env.example

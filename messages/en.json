@@ -1,0 +1,288 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"app": {
+		"name": "ESP Latch"
+	},
+	"toolbar": {
+		"refresh": "Refresh",
+		"settings": "Settings",
+		"log": "Activity Log"
+	},
+	"device_list": {
+		"title": "Storage",
+		"count": [
+			{
+				"declarations": [
+					"input count",
+					"local countPlural = count: plural"
+				],
+				"selectors": [
+					"countPlural"
+				],
+				"match": {
+					"countPlural=one": "{count} device",
+					"countPlural=other": "{count} devices"
+				}
+			}
+		],
+		"count_filtered": "{shown} of {total}"
+	},
+	"filter": {
+		"all": "All",
+		"physical": "Physical",
+		"esp": "With ESP"
+	},
+	"device": {
+		"kind": {
+			"internal": "Internal",
+			"external": "External",
+			"image": "Disk Image"
+		},
+		"esp_count": [
+			{
+				"declarations": [
+					"input count",
+					"local countPlural = count: plural"
+				],
+				"selectors": [
+					"countPlural"
+				],
+				"match": {
+					"countPlural=one": "{count} ESP",
+					"countPlural=other": "{count} ESPs"
+				}
+			}
+		],
+		"esp_none": "No ESP",
+		"mounted_count": [
+			{
+				"declarations": [
+					"input count",
+					"local countPlural = count: plural"
+				],
+				"selectors": [
+					"countPlural"
+				],
+				"match": {
+					"countPlural=one": "{count} mounted",
+					"countPlural=other": "{count} mounted"
+				}
+			}
+		],
+		"on_store": "on {store}"
+	},
+	"detail": {
+		"eject_device": "Eject Device",
+		"identifier": "Identifier",
+		"connection": "Connection",
+		"scheme": "Partition scheme",
+		"capacity": "Capacity",
+		"stored_on": "Stored on"
+	},
+	"band": {
+		"title": "Partition Layout",
+		"note": "Small partitions are drawn at a minimum width",
+		"legend": {
+			"esp": "ESP",
+			"mounted": "Mounted ESP",
+			"apfs": "APFS",
+			"hfs": "HFS+",
+			"other": "Other"
+		}
+	},
+	"esp": {
+		"section_title": "EFI System Partitions",
+		"mount": "Mount",
+		"unmount": "Unmount",
+		"open_finder": "Open in Finder",
+		"working": "Working…",
+		"state": {
+			"mounted": "Mounted",
+			"unmounted": "Not mounted"
+		},
+		"boot_badge": "Booted from",
+		"mount_point": "Mount point",
+		"size": "Size",
+		"format": "Format",
+		"loader": "Bootloader",
+		"loader_unknown": "Mount to check",
+		"free": "Free space",
+		"free_of": "{free} of {total}",
+		"free_unknown": "Mount to check",
+		"trash": "Trash",
+		"trash_none": "Empty",
+		"trash_warning": "{size} is still in this ESP’s Trash. Unmounting won’t free that space.",
+		"empty_trash": "Empty Trash",
+		"empty_trash_unmount": "Empty Trash and Unmount",
+		"usage": {
+			"used": "Used",
+			"trash": "Trash",
+			"free": "Free"
+		}
+	},
+	"other": {
+		"section_title": "Other Partitions",
+		"container_label": "APFS Container",
+		"toggle_container": "Show container and volumes",
+		"volume_count": [
+			{
+				"declarations": [
+					"input count",
+					"local countPlural = count: plural"
+				],
+				"selectors": [
+					"countPlural"
+				],
+				"match": {
+					"countPlural=one": "{count} volume",
+					"countPlural=other": "{count} volumes"
+				}
+			}
+		]
+	},
+	"table": {
+		"volume_used": "{size} used",
+		"identifier": "Identifier",
+		"name": "Name",
+		"type": "Type",
+		"size": "Size",
+		"mount_point": "Mount point",
+		"not_mounted": "—"
+	},
+	"empty": {
+		"no_match": {
+			"title": "No devices match this filter",
+			"body": "Switch the filter to “{filter}” to show every device."
+		},
+		"no_esp": {
+			"title": "This device has no ESP",
+			"body": "No EFI System Partition was found on {device}."
+		},
+		"select": {
+			"title": "Select a device",
+			"body": "Choose a storage device from the list to work with its ESPs."
+		}
+	},
+	"status": {
+		"loading": "Loading devices…",
+		"ready": "{count} devices, {esp} with an ESP",
+		"last_command": "Last command",
+		"waiting_auth": "Waiting for administrator authentication…",
+		"privileged": "Running with administrator privileges"
+	},
+	"toast": {
+		"mount_success": {
+			"title": "Mounted",
+			"body": "Mounted {id} at {path}."
+		},
+		"mount_failed": {
+			"title": "Couldn’t mount the ESP"
+		},
+		"auth_cancelled": {
+			"title": "Authentication was cancelled",
+			"body": "Mounting an ESP requires administrator privileges."
+		},
+		"trash_emptied": {
+			"title": "Trash emptied",
+			"body": "Freed {size} on {id}."
+		},
+		"retry": "Try Again",
+		"show_log": "View Log",
+		"close": "Close"
+	},
+	"modal": {
+		"eject": {
+			"label": "Eject device",
+			"title": "Eject {device}?",
+			"body": [
+				{
+					"declarations": [
+						"input count",
+						"local countPlural = count: plural"
+					],
+					"selectors": [
+						"countPlural"
+					],
+					"match": {
+						"countPlural=one": "{count} volume on this device will be unmounted, including any mounted ESP.",
+						"countPlural=other": "All {count} volumes on this device will be unmounted, including any mounted ESP."
+					}
+				}
+			],
+			"confirm": "Eject"
+		},
+		"cancel": "Cancel"
+	},
+	"settings": {
+		"title": "Settings",
+		"group": {
+			"general": "General",
+			"behavior": "Behavior",
+			"about": "About"
+		},
+		"language": {
+			"label": "Language",
+			"system": "Match system"
+		},
+		"theme": {
+			"label": "Appearance",
+			"system": "Match system"
+		},
+		"open_finder": "Open in Finder after mounting",
+		"default_filter": "Filter at launch",
+		"auto_refresh": "Refresh the list when devices are connected or removed",
+		"confirm_eject": "Ask before ejecting a device",
+		"show_command": "Show executed commands in the status bar",
+		"auto_empty_trash": "Empty an ESP’s Trash automatically when unmounting it",
+		"version": "Version {version}",
+		"repository": "GitHub repository"
+	},
+	"log": {
+		"title": "Activity Log",
+		"copy": "Copy",
+		"clear": "Clear",
+		"col": {
+			"time": "Time",
+			"command": "Command",
+			"result": "Result"
+		},
+		"result": {
+			"ok": "Succeeded",
+			"fail": "Failed",
+			"cancelled": "Cancelled"
+		},
+		"empty": {
+			"title": "No activity yet",
+			"body": "Commands run when you mount or unmount will be recorded here."
+		}
+	},
+	"menu": {
+		"app": {
+			"about": "About ESP Latch",
+			"settings": "Settings…",
+			"services": "Services",
+			"hide": "Hide ESP Latch",
+			"hide_others": "Hide Others",
+			"show_all": "Show All",
+			"quit": "Quit ESP Latch"
+		},
+		"edit": {
+			"title": "Edit",
+			"undo": "Undo",
+			"redo": "Redo",
+			"cut": "Cut",
+			"copy": "Copy",
+			"paste": "Paste",
+			"select_all": "Select All"
+		},
+		"window": {
+			"title": "Window",
+			"minimize": "Minimize",
+			"zoom": "Zoom",
+			"close": "Close",
+			"main": "Main Window",
+			"log": "Activity Log",
+			"bring_all_to_front": "Bring All to Front"
+		}
+	}
+}

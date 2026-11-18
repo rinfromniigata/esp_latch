@@ -1,0 +1,21 @@
+/* アプリ全体の基本。値はCarbonのトークン（--cds-*）とブランドトークン（--esp-*）だけを参照する */
+
+html,
+body {
+	margin: 0;
+	height: 100%;
+}
+
+body {
+	background-color: var(--cds-background);
+	color: var(--cds-text-primary);
+	font-family: var(--esp-font-sans);
+	-webkit-font-smoothing: antialiased;
+}
+
+code,
+kbd,
+samp,
+.mono {
+	font-family: var(--esp-font-mono);
+}

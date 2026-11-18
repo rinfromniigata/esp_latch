@@ -1,0 +1,14 @@
+[package]
+name = "esp_latch_helper"
+description = "Privileged helper for ESP Latch"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "esp-latch-helper"
+path = "src/main.rs"
+
+[dependencies]

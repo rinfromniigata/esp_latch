@@ -1,0 +1,283 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"app": {
+		"name": "ESP Latch"
+	},
+	"toolbar": {
+		"refresh": "刷新",
+		"settings": "设置",
+		"log": "操作日志"
+	},
+	"device_list": {
+		"title": "存储设备",
+		"count": [
+			{
+				"declarations": [
+					"input count",
+					"local countPlural = count: plural"
+				],
+				"selectors": [
+					"countPlural"
+				],
+				"match": {
+					"countPlural=other": "{count} 台"
+				}
+			}
+		],
+		"count_filtered": "{shown} 台 / 共 {total} 台"
+	},
+	"filter": {
+		"all": "全部",
+		"physical": "物理",
+		"esp": "有 ESP"
+	},
+	"device": {
+		"kind": {
+			"internal": "内置",
+			"external": "外置",
+			"image": "磁盘映像"
+		},
+		"esp_count": [
+			{
+				"declarations": [
+					"input count",
+					"local countPlural = count: plural"
+				],
+				"selectors": [
+					"countPlural"
+				],
+				"match": {
+					"countPlural=other": "{count} 个 ESP"
+				}
+			}
+		],
+		"esp_none": "无 ESP",
+		"mounted_count": [
+			{
+				"declarations": [
+					"input count",
+					"local countPlural = count: plural"
+				],
+				"selectors": [
+					"countPlural"
+				],
+				"match": {
+					"countPlural=other": "{count} 个已挂载"
+				}
+			}
+		],
+		"on_store": "位于 {store}"
+	},
+	"detail": {
+		"eject_device": "推出设备",
+		"identifier": "标识符",
+		"connection": "连接方式",
+		"scheme": "分区方案",
+		"capacity": "容量",
+		"stored_on": "存储位置"
+	},
+	"band": {
+		"title": "分区布局",
+		"note": "较小的分区按最小宽度显示",
+		"legend": {
+			"esp": "ESP",
+			"mounted": "已挂载的 ESP",
+			"apfs": "APFS",
+			"hfs": "HFS+",
+			"other": "其他"
+		}
+	},
+	"esp": {
+		"section_title": "EFI 系统分区",
+		"mount": "挂载",
+		"unmount": "卸载",
+		"open_finder": "在访达中打开",
+		"working": "处理中…",
+		"state": {
+			"mounted": "已挂载",
+			"unmounted": "未挂载"
+		},
+		"boot_badge": "当前启动",
+		"mount_point": "挂载点",
+		"size": "大小",
+		"format": "格式",
+		"loader": "引导程序",
+		"loader_unknown": "挂载后可检测",
+		"free": "可用空间",
+		"free_of": "{free}（共 {total}）",
+		"free_unknown": "挂载后可查看",
+		"trash": "废纸篓",
+		"trash_none": "空",
+		"trash_warning": "废纸篓中仍有 {size}。卸载后，这部分 ESP 空间也不会释放。",
+		"empty_trash": "清倒废纸篓",
+		"empty_trash_unmount": "清倒废纸篓并卸载",
+		"usage": {
+			"used": "已用",
+			"trash": "废纸篓",
+			"free": "可用"
+		}
+	},
+	"other": {
+		"section_title": "其他分区",
+		"container_label": "APFS 容器",
+		"toggle_container": "显示容器和宗卷",
+		"volume_count": [
+			{
+				"declarations": [
+					"input count",
+					"local countPlural = count: plural"
+				],
+				"selectors": [
+					"countPlural"
+				],
+				"match": {
+					"countPlural=other": "{count} 个宗卷"
+				}
+			}
+		]
+	},
+	"table": {
+		"volume_used": "已用 {size}",
+		"identifier": "标识符",
+		"name": "名称",
+		"type": "类型",
+		"size": "大小",
+		"mount_point": "挂载点",
+		"not_mounted": "—"
+	},
+	"empty": {
+		"no_match": {
+			"title": "没有符合条件的设备",
+			"body": "将筛选切换为“{filter}”即可显示所有设备。"
+		},
+		"no_esp": {
+			"title": "此设备没有 ESP",
+			"body": "未在 {device} 上找到 EFI 系统分区。"
+		},
+		"select": {
+			"title": "请选择设备",
+			"body": "从左侧列表中选择存储设备，即可操作其 ESP。"
+		}
+	},
+	"status": {
+		"loading": "正在读取设备…",
+		"ready": "{count} 台设备，其中 {esp} 台有 ESP",
+		"last_command": "上一条命令",
+		"waiting_auth": "正在等待管理员认证…",
+		"privileged": "正在以管理员权限运行"
+	},
+	"toast": {
+		"mount_success": {
+			"title": "已挂载",
+			"body": "已将 {id} 挂载到 {path}。"
+		},
+		"mount_failed": {
+			"title": "无法挂载"
+		},
+		"auth_cancelled": {
+			"title": "认证已取消",
+			"body": "挂载 ESP 需要管理员权限。"
+		},
+		"trash_emptied": {
+			"title": "已清倒废纸篓",
+			"body": "已在 {id} 上释放 {size}。"
+		},
+		"retry": "重试",
+		"show_log": "查看日志",
+		"close": "关闭"
+	},
+	"modal": {
+		"eject": {
+			"label": "推出设备",
+			"title": "要推出 {device} 吗？",
+			"body": [
+				{
+					"declarations": [
+						"input count",
+						"local countPlural = count: plural"
+					],
+					"selectors": [
+						"countPlural"
+					],
+					"match": {
+						"countPlural=other": "将卸载此设备上的全部 {count} 个宗卷，包括已挂载的 ESP。"
+					}
+				}
+			],
+			"confirm": "推出"
+		},
+		"cancel": "取消"
+	},
+	"settings": {
+		"title": "设置",
+		"group": {
+			"general": "通用",
+			"behavior": "行为",
+			"about": "关于"
+		},
+		"language": {
+			"label": "语言",
+			"system": "跟随系统"
+		},
+		"theme": {
+			"label": "外观",
+			"system": "跟随系统"
+		},
+		"open_finder": "挂载后在访达中打开",
+		"default_filter": "启动时的筛选",
+		"auto_refresh": "设备连接或移除时自动刷新列表",
+		"confirm_eject": "推出设备前确认",
+		"show_command": "在状态栏中显示执行的命令",
+		"auto_empty_trash": "卸载 ESP 时自动清倒其废纸篓",
+		"version": "版本 {version}",
+		"repository": "GitHub 仓库"
+	},
+	"log": {
+		"title": "操作日志",
+		"copy": "复制",
+		"clear": "清除",
+		"col": {
+			"time": "时间",
+			"command": "命令",
+			"result": "结果"
+		},
+		"result": {
+			"ok": "成功",
+			"fail": "失败",
+			"cancelled": "已取消"
+		},
+		"empty": {
+			"title": "暂无操作",
+			"body": "挂载或卸载时执行的命令会记录在这里。"
+		}
+	},
+	"menu": {
+		"app": {
+			"about": "关于 ESP Latch",
+			"settings": "设置…",
+			"services": "服务",
+			"hide": "隐藏 ESP Latch",
+			"hide_others": "隐藏其他",
+			"show_all": "全部显示",
+			"quit": "退出 ESP Latch"
+		},
+		"edit": {
+			"title": "编辑",
+			"undo": "撤销",
+			"redo": "重做",
+			"cut": "剪切",
+			"copy": "拷贝",
+			"paste": "粘贴",
+			"select_all": "全选"
+		},
+		"window": {
+			"title": "窗口",
+			"minimize": "最小化",
+			"zoom": "缩放",
+			"close": "关闭",
+			"main": "主窗口",
+			"log": "操作日志",
+			"bring_all_to_front": "前置全部窗口"
+		}
+	}
+}

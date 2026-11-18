@@ -1,0 +1,283 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"app": {
+		"name": "ESP Latch"
+	},
+	"toolbar": {
+		"refresh": "更新",
+		"settings": "設定",
+		"log": "操作ログ"
+	},
+	"device_list": {
+		"title": "ストレージ",
+		"count": [
+			{
+				"declarations": [
+					"input count",
+					"local countPlural = count: plural"
+				],
+				"selectors": [
+					"countPlural"
+				],
+				"match": {
+					"countPlural=other": "{count}台"
+				}
+			}
+		],
+		"count_filtered": "{shown}台／全{total}台"
+	},
+	"filter": {
+		"all": "全て",
+		"physical": "物理",
+		"esp": "ESPあり"
+	},
+	"device": {
+		"kind": {
+			"internal": "内蔵",
+			"external": "外付け",
+			"image": "ディスクイメージ"
+		},
+		"esp_count": [
+			{
+				"declarations": [
+					"input count",
+					"local countPlural = count: plural"
+				],
+				"selectors": [
+					"countPlural"
+				],
+				"match": {
+					"countPlural=other": "ESP {count}個"
+				}
+			}
+		],
+		"esp_none": "ESPなし",
+		"mounted_count": [
+			{
+				"declarations": [
+					"input count",
+					"local countPlural = count: plural"
+				],
+				"selectors": [
+					"countPlural"
+				],
+				"match": {
+					"countPlural=other": "{count}個マウント中"
+				}
+			}
+		],
+		"on_store": "{store} 上"
+	},
+	"detail": {
+		"eject_device": "デバイスを取り出す",
+		"identifier": "識別子",
+		"connection": "接続",
+		"scheme": "パーティション方式",
+		"capacity": "容量",
+		"stored_on": "保存先"
+	},
+	"band": {
+		"title": "パーティション配置",
+		"note": "小さいパーティションは最小幅で表示しています",
+		"legend": {
+			"esp": "ESP",
+			"mounted": "マウント中のESP",
+			"apfs": "APFS",
+			"hfs": "HFS+",
+			"other": "その他"
+		}
+	},
+	"esp": {
+		"section_title": "EFIシステムパーティション",
+		"mount": "マウント",
+		"unmount": "取り外す",
+		"open_finder": "Finderで開く",
+		"working": "処理中…",
+		"state": {
+			"mounted": "マウント中",
+			"unmounted": "未マウント"
+		},
+		"boot_badge": "起動に使用",
+		"mount_point": "マウント先",
+		"size": "容量",
+		"format": "形式",
+		"loader": "ブートローダー",
+		"loader_unknown": "マウントすると確認できます",
+		"free": "空き容量",
+		"free_of": "{free}（全{total}）",
+		"free_unknown": "マウントすると確認できます",
+		"trash": "ゴミ箱",
+		"trash_none": "空",
+		"trash_warning": "ゴミ箱に{size}残っています。取り外しても、ESPの容量は戻りません。",
+		"empty_trash": "ゴミ箱を空にする",
+		"empty_trash_unmount": "ゴミ箱を空にして取り外す",
+		"usage": {
+			"used": "使用中",
+			"trash": "ゴミ箱",
+			"free": "空き"
+		}
+	},
+	"other": {
+		"section_title": "その他のパーティション",
+		"container_label": "APFSコンテナ",
+		"toggle_container": "コンテナとボリュームを表示",
+		"volume_count": [
+			{
+				"declarations": [
+					"input count",
+					"local countPlural = count: plural"
+				],
+				"selectors": [
+					"countPlural"
+				],
+				"match": {
+					"countPlural=other": "ボリューム{count}個"
+				}
+			}
+		]
+	},
+	"table": {
+		"volume_used": "{size} 使用",
+		"identifier": "識別子",
+		"name": "名前",
+		"type": "種類",
+		"size": "容量",
+		"mount_point": "マウント先",
+		"not_mounted": "—"
+	},
+	"empty": {
+		"no_match": {
+			"title": "条件に合うデバイスはありません",
+			"body": "絞り込みを「{filter}」にすると、すべてのデバイスを表示します。"
+		},
+		"no_esp": {
+			"title": "このデバイスにESPはありません",
+			"body": "{device} にEFIシステムパーティションは見つかりませんでした。"
+		},
+		"select": {
+			"title": "デバイスを選んでください",
+			"body": "左の一覧からストレージを選ぶと、ESPを操作できます。"
+		}
+	},
+	"status": {
+		"loading": "デバイスを読み込んでいます…",
+		"ready": "{count}台のデバイス、うちESPあり{esp}台",
+		"last_command": "最後のコマンド",
+		"waiting_auth": "管理者の認証を待っています…",
+		"privileged": "管理者権限で実行中"
+	},
+	"toast": {
+		"mount_success": {
+			"title": "マウントしました",
+			"body": "{id} を {path} にマウントしました。"
+		},
+		"mount_failed": {
+			"title": "マウントできませんでした"
+		},
+		"auth_cancelled": {
+			"title": "認証がキャンセルされました",
+			"body": "ESPのマウントには管理者の権限が必要です。"
+		},
+		"trash_emptied": {
+			"title": "ゴミ箱を空にしました",
+			"body": "{id} の空き容量が {size} 増えました。"
+		},
+		"retry": "再試行",
+		"show_log": "ログを見る",
+		"close": "閉じる"
+	},
+	"modal": {
+		"eject": {
+			"label": "デバイスの取り出し",
+			"title": "{device} を取り出しますか？",
+			"body": [
+				{
+					"declarations": [
+						"input count",
+						"local countPlural = count: plural"
+					],
+					"selectors": [
+						"countPlural"
+					],
+					"match": {
+						"countPlural=other": "このデバイスのボリューム{count}個をすべて取り外します。マウント中のESPも取り外されます。"
+					}
+				}
+			],
+			"confirm": "取り出す"
+		},
+		"cancel": "キャンセル"
+	},
+	"settings": {
+		"title": "設定",
+		"group": {
+			"general": "一般",
+			"behavior": "動作",
+			"about": "このアプリについて"
+		},
+		"language": {
+			"label": "言語",
+			"system": "システムに合わせる"
+		},
+		"theme": {
+			"label": "外観",
+			"system": "システムに合わせる"
+		},
+		"open_finder": "マウントしたらFinderで開く",
+		"default_filter": "起動時の絞り込み",
+		"auto_refresh": "デバイスの接続・取り外しを検知して一覧を更新する",
+		"confirm_eject": "デバイスを取り出す前に確認する",
+		"show_command": "実行したコマンドをステータスバーに表示する",
+		"auto_empty_trash": "ESPを取り外すとき、そのESPのゴミ箱を自動で空にする",
+		"version": "バージョン {version}",
+		"repository": "GitHubのリポジトリ"
+	},
+	"log": {
+		"title": "操作ログ",
+		"copy": "コピー",
+		"clear": "消去",
+		"col": {
+			"time": "時刻",
+			"command": "コマンド",
+			"result": "結果"
+		},
+		"result": {
+			"ok": "成功",
+			"fail": "失敗",
+			"cancelled": "キャンセル"
+		},
+		"empty": {
+			"title": "まだ操作はありません",
+			"body": "マウントや取り外しを行うと、実行したコマンドがここに記録されます。"
+		}
+	},
+	"menu": {
+		"app": {
+			"about": "ESP Latchについて",
+			"settings": "設定…",
+			"services": "サービス",
+			"hide": "ESP Latchを隠す",
+			"hide_others": "ほかを隠す",
+			"show_all": "すべてを表示",
+			"quit": "ESP Latchを終了"
+		},
+		"edit": {
+			"title": "編集",
+			"undo": "取り消す",
+			"redo": "やり直す",
+			"cut": "カット",
+			"copy": "コピー",
+			"paste": "ペースト",
+			"select_all": "すべてを選択"
+		},
+		"window": {
+			"title": "ウインドウ",
+			"minimize": "しまう",
+			"zoom": "拡大／縮小",
+			"close": "閉じる",
+			"main": "メインウインドウ",
+			"log": "操作ログ",
+			"bring_all_to_front": "すべてを手前に移動"
+		}
+	}
+}

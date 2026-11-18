@@ -1,0 +1,84 @@
+/* esp_latch ブランドトークン（確定・v1からの改訂：WCAG AA 4.5:1を満たすよう文字と背景の組み合わせを調整）
+   Carbon Design System v11（@carbon/web-components 2.x）のテーマを上書きする値だけを持つ。
+   ライトは g10、ダークは g100 を土台にする。各値の右のコメントは、上書きする Carbon の既定値。
+   Carbon にない項目（書体の切り替え・角丸・マウント状態色・帯グラフの色）は --esp- 接頭辞で持つ */
+
+:root {
+  /* 書体（ロケールごとに切り替える）。Carbon既定：IBM Plex Sans / IBM Plex Mono（@carbon/type） */
+  --esp-font-sans: "IBM Plex Sans", -apple-system, "SF Pro Text", "Helvetica Neue", sans-serif;
+  --esp-font-mono: "IBM Plex Mono", "SF Mono", Menlo, monospace;
+
+  /* 角丸：Carbon既定は 0（部品は角） */
+  --esp-radius-sm: 2px; /* ボタン・入力・タグ以外の小部品 */
+  --esp-radius-md: 4px; /* タイル・モーダル */
+}
+
+:root:lang(ja) {
+  --esp-font-sans: "IBM Plex Sans JP", "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
+}
+:root:lang(zh-Hans) {
+  --esp-font-sans: "IBM Plex Sans", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
+}
+
+/* ライト（g10を上書き） */
+:root,
+[data-theme="light"] {
+  --cds-background: #f4f5f7;           /* g10: #f4f4f4 */
+  --cds-layer-01: #ffffff;             /* g10: #ffffff */
+  --cds-layer-02: #eef0f3;             /* g10: #f4f4f4 */
+  --cds-layer-hover-01: #e9ecf0;       /* g10: #e8e8e8 */
+  --cds-layer-selected-01: #dfe4ea;    /* g10: #e0e0e0 */
+  --cds-border-subtle-01: #d0d4da;     /* g10: #c6c6c6 */
+  --cds-border-strong-01: #8a94a3;     /* g10: #8d8d8d */
+  --cds-text-primary: #1b1f24;         /* g10: #161616 */
+  --cds-text-secondary: #5b6470;       /* g10: #525252 */
+  --cds-icon-primary: #1b1f24;         /* g10: #161616 */
+  --cds-icon-secondary: #5b6470;       /* g10: #525252 */
+  --cds-interactive: #1f6fd1;          /* g10: #0f62fe */
+  --cds-focus: #1f6fd1;                /* g10: #0f62fe */
+  --cds-link-primary: #1f6fd1;         /* g10: #0f62fe */
+  --cds-button-primary: #1f6fd1;       /* g10: #0f62fe */
+  --cds-button-primary-hover: #1a5fb4; /* g10: #0050e6 */
+  --cds-button-primary-active: #154c91;/* g10: #002d9c */
+  --cds-highlight: #dbe8f8;            /* g10: #d0e2ff */
+  --cds-tag-background-blue: #dbe8f8;  /* g10: #d0e2ff（「ESP N個」タグ） */
+  --cds-tag-color-blue: #1a5fb4;       /* g10: #0043ce。#dbe8f8 に対して 5.06 */
+  --cds-support-error: #c4392d;        /* g10: #da1e28 */
+  --esp-state-mounted: #0a7268;        /* 独自：マウント中の文字・枠・帯。-bg に対して 4.86、白に対して 5.80 */
+  --esp-state-mounted-bg: #d8f0ed;     /* 独自：マウント中のタグ背景 */
+  --esp-part-esp: #1f6fd1;             /* 独自：帯グラフのESP */
+  --esp-part-apfs: #8a94a3;            /* 独自：帯グラフのAPFS */
+  --esp-part-hfs: #a9b1bd;             /* 独自：帯グラフのHFS+ */
+  --esp-part-other: #c9ced6;           /* 独自：帯グラフのその他 */
+}
+
+/* ダーク（g100を上書き） */
+[data-theme="dark"] {
+  --cds-background: #15181d;           /* g100: #161616 */
+  --cds-layer-01: #1d2127;             /* g100: #262626 */
+  --cds-layer-02: #262b33;             /* g100: #393939 */
+  --cds-layer-hover-01: #2a3038;       /* g100: #333333 */
+  --cds-layer-selected-01: #313843;    /* g100: #393939 */
+  --cds-border-subtle-01: #343a44;     /* g100: #393939 */
+  --cds-border-strong-01: #6b7584;     /* g100: #6f6f6f */
+  --cds-text-primary: #e6e9ee;         /* g100: #f4f4f4 */
+  --cds-text-secondary: #9aa3af;       /* g100: #c6c6c6 */
+  --cds-icon-primary: #e6e9ee;         /* g100: #f4f4f4 */
+  --cds-icon-secondary: #9aa3af;       /* g100: #c6c6c6 */
+  --cds-interactive: #5b9df0;          /* g100: #4589ff */
+  --cds-focus: #e6e9ee;                /* g100: #ffffff */
+  --cds-link-primary: #7fb3f5;         /* g100: #78a9ff */
+  --cds-button-primary: #2b70c9;       /* g100: #0f62fe。白い文字に対して 4.93 */
+  --cds-button-primary-hover: #2768bd; /* g100: #0050e6。白い文字に対して 5.52 */
+  --cds-button-primary-active: #1f589f;/* g100: #002d9c。白い文字に対して 7.11（hoverより一段暗く） */
+  --cds-highlight: #1d3352;            /* g100: #002d9c */
+  --cds-tag-background-blue: #1d3352;  /* g100: #0043ce（「ESP N個」タグ） */
+  --cds-tag-color-blue: #7fb3f5;       /* g100: #d0e2ff。#1d3352 に対して 5.87 */
+  --cds-support-error: #f0786b;        /* g100: #fa4d56 */
+  --esp-state-mounted: #3cc4b3;        /* 独自 */
+  --esp-state-mounted-bg: #143a36;     /* 独自 */
+  --esp-part-esp: #5b9df0;             /* 独自 */
+  --esp-part-apfs: #6b7584;            /* 独自 */
+  --esp-part-hfs: #58616e;             /* 独自 */
+  --esp-part-other: #454c57;           /* 独自 */
+}
