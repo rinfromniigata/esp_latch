@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- esp_latch アイコン（マスター）
+       モチーフ：錠前の胴を兼ねた角丸矩形（USBメモリの本体）の中にパーティションの帯グラフ。
+                 ESPの区画の真上に、南京錠のように開いた留め金（ラッチ）が掛かっている
+       余白ルール：前景の主要な形は、中心(512,512)・直径約62%（半径317px）の円に収める
+       色はブランドトークン（ダーク）の値：
+         00_bg      cds-layer-02 #262b33 から cds-background #15181d への縦グラデーション
+         01_body    cds-text-primary #e6e9ee（本体の枠）
+         02_band    cds-text-secondary #9aa3af、esp-part-apfs #6b7584
+         03_esp     esp-state-mounted #3cc4b3
+         04_latch   cds-text-primary #e6e9ee -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#262b33"/>
+      <stop offset="1" stop-color="#15181d"/>
+    </linearGradient>
+  </defs>
+
+  <g id="00_bg">
+    <rect x="0" y="0" width="1024" height="1024" fill="url(#bg)"/>
+  </g>
+
+  <!-- 本体：横長の角丸矩形の枠（錠前の胴を兼ねる） -->
+  <g id="01_body">
+    <rect x="290" y="504" width="444" height="224" rx="44" fill="none" stroke="#e6e9ee" stroke-width="28"/>
+  </g>
+
+  <!-- ESP以外のパーティション（帯の右側2区画） -->
+  <g id="02_band">
+    <rect x="450" y="540" width="146" height="152" rx="12" fill="#9aa3af"/>
+    <rect x="610" y="540" width="88" height="152" rx="12" fill="#6b7584"/>
+  </g>
+
+  <!-- ESPの区画（帯の左端） -->
+  <g id="03_esp">
+    <rect x="326" y="540" width="110" height="152" rx="12" fill="#3cc4b3"/>
+  </g>
+
+  <!-- 開いた留め金：左脚がESPの真上で本体に刺さり、右脚は浮いている -->
+  <g id="04_latch">
+    <path d="M 381 518 L 381 398 A 95 95 0 0 1 571 398 L 571 438"
+          fill="none" stroke="#e6e9ee" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

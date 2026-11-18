@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>esp_latch モック S03</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+JP:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== 1. Carbon Design System v11 の既定値（モックで使う分だけ。ライト=g10、ダーク=g100） ===== */
+:root, [data-theme="light"] {
+  --cds-background: #f4f4f4;
+  --cds-layer-01: #ffffff;
+  --cds-layer-02: #f4f4f4;
+  --cds-layer-hover-01: #e8e8e8;
+  --cds-layer-selected-01: #e0e0e0;
+  --cds-border-subtle-01: #c6c6c6;
+  --cds-border-strong-01: #8d8d8d;
+  --cds-text-primary: #161616;
+  --cds-text-secondary: #525252;
+  --cds-text-on-color: #ffffff;
+  --cds-text-disabled: rgba(22,22,22,.25);
+  --cds-icon-primary: #161616;
+  --cds-icon-secondary: #525252;
+  --cds-interactive: #0f62fe;
+  --cds-focus: #0f62fe;
+  --cds-link-primary: #0f62fe;
+  --cds-button-primary: #0f62fe;
+  --cds-button-primary-hover: #0050e6;
+  --cds-button-primary-active: #002d9c;
+  --cds-button-secondary: #393939;
+  --cds-button-secondary-hover: #474747;
+  --cds-button-disabled: #c6c6c6;
+  --cds-field-01: #ffffff;
+  --cds-highlight: #d0e2ff;
+  --cds-support-error: #da1e28;
+  --cds-support-warning: #f1c21b;
+  --cds-overlay: rgba(22,22,22,.5);
+  --cds-shadow: rgba(0,0,0,.3);
+  --cds-spacing-02: 4px;
+  --cds-spacing-03: 8px;
+  --cds-spacing-04: 12px;
+  --cds-spacing-05: 16px;
+  --cds-spacing-06: 24px;
+  --cds-spacing-07: 32px;
+  --cds-duration-fast-02: 110ms;
+  --cds-easing-productive: cubic-bezier(0.2, 0, 0.38, 0.9);
+}
+[data-theme="dark"] {
+  --cds-background: #161616;
+  --cds-layer-01: #262626;
+  --cds-layer-02: #393939;
+  --cds-layer-hover-01: #333333;
+  --cds-layer-selected-01: #393939;
+  --cds-border-subtle-01: #393939;
+  --cds-border-strong-01: #6f6f6f;
+  --cds-text-primary: #f4f4f4;
+  --cds-text-secondary: #c6c6c6;
+  --cds-text-on-color: #ffffff;
+  --cds-text-disabled: rgba(244,244,244,.25);
+  --cds-icon-primary: #f4f4f4;
+  --cds-icon-secondary: #c6c6c6;
+  --cds-interactive: #4589ff;
+  --cds-focus: #ffffff;
+  --cds-link-primary: #78a9ff;
+  --cds-button-primary: #0f62fe;
+  --cds-button-primary-hover: #0050e6;
+  --cds-button-primary-active: #002d9c;
+  --cds-button-secondary: #6f6f6f;
+  --cds-button-secondary-hover: #5e5e5e;
+  --cds-button-disabled: #393939;
+  --cds-field-01: #262626;
+  --cds-highlight: #002d9c;
+  --cds-support-error: #fa4d56;
+  --cds-support-warning: #f1c21b;
+  --cds-overlay: rgba(0,0,0,.65);
+  --cds-shadow: rgba(0,0,0,.8);
+}
+
+/* ===== 2. ブランドトークン（esp_latch_tokens.css の写し。1を上書きする） ===== */
+/* esp_latch ブランドトークン（確定）
+   Carbon Design System v11（@carbon/web-components 2.x）のテーマを上書きする値だけを持つ。
+   ライトは g10、ダークは g100 を土台にする。各値の右のコメントは、上書きする Carbon の既定値。
+   Carbon にない項目（書体の切り替え・角丸・マウント状態色・帯グラフの色）は --esp- 接頭辞で持つ */
+
+:root {
+  /* 書体（ロケールごとに切り替える）。Carbon既定：IBM Plex Sans / IBM Plex Mono（@carbon/type） */
+  --esp-font-sans: "IBM Plex Sans", -apple-system, "SF Pro Text", "Helvetica Neue", sans-serif;
+  --esp-font-mono: "IBM Plex Mono", "SF Mono", Menlo, monospace;
+
+  /* 角丸：Carbon既定は 0（部品は角） */
+  --esp-radius-sm: 2px; /* ボタン・入力・タグ以外の小部品 */
+  --esp-radius-md: 4px; /* タイル・モーダル */
+}
+
+:root:lang(ja) {
+  --esp-font-sans: "IBM Plex Sans JP", "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
+}
+:root:lang(zh-Hans) {
+  --esp-font-sans: "IBM Plex Sans", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
+}
+
+/* ライト（g10を上書き） */
+:root,
+[data-theme="light"] {
+  --cds-background: #f4f5f7;           /* g10: #f4f4f4 */
+  --cds-layer-01: #ffffff;             /* g10: #ffffff */
+  --cds-layer-02: #eef0f3;             /* g10: #f4f4f4 */
+  --cds-layer-hover-01: #e9ecf0;       /* g10: #e8e8e8 */
+  --cds-layer-selected-01: #dfe4ea;    /* g10: #e0e0e0 */
+  --cds-border-subtle-01: #d0d4da;     /* g10: #c6c6c6 */
+  --cds-border-strong-01: #8a94a3;     /* g10: #8d8d8d */
+  --cds-text-primary: #1b1f24;         /* g10: #161616 */
+  --cds-text-secondary: #5b6470;       /* g10: #525252 */
+  --cds-icon-primary: #1b1f24;         /* g10: #161616 */
+  --cds-icon-secondary: #5b6470;       /* g10: #525252 */
+  --cds-interactive: #1f6fd1;          /* g10: #0f62fe */
+  --cds-focus: #1f6fd1;                /* g10: #0f62fe */
+  --cds-link-primary: #1f6fd1;         /* g10: #0f62fe */
+  --cds-button-primary: #1f6fd1;       /* g10: #0f62fe */
+  --cds-button-primary-hover: #1a5fb4; /* g10: #0050e6 */
+  --cds-button-primary-active: #154c91;/* g10: #002d9c */
+  --cds-highlight: #dbe8f8;            /* g10: #d0e2ff */
+  --cds-support-error: #c4392d;        /* g10: #da1e28 */
+  --esp-state-mounted: #0f8a7e;        /* 独自：マウント中の文字・枠・帯 */
+  --esp-state-mounted-bg: #d8f0ed;     /* 独自：マウント中のタグ背景 */
+  --esp-part-esp: #1f6fd1;             /* 独自：帯グラフのESP */
+  --esp-part-apfs: #8a94a3;            /* 独自：帯グラフのAPFS */
+  --esp-part-hfs: #a9b1bd;             /* 独自：帯グラフのHFS+ */
+  --esp-part-other: #c9ced6;           /* 独自：帯グラフのその他 */
+}
+
+/* ダーク（g100を上書き） */
+[data-theme="dark"] {
+  --cds-background: #15181d;           /* g100: #161616 */
+  --cds-layer-01: #1d2127;             /* g100: #262626 */
+  --cds-layer-02: #262b33;             /* g100: #393939 */
+  --cds-layer-hover-01: #2a3038;       /* g100: #333333 */
+  --cds-layer-selected-01: #313843;    /* g100: #393939 */
+  --cds-border-subtle-01: #343a44;     /* g100: #393939 */
+  --cds-border-strong-01: #6b7584;     /* g100: #6f6f6f */
+  --cds-text-primary: #e6e9ee;         /* g100: #f4f4f4 */
+  --cds-text-secondary: #9aa3af;       /* g100: #c6c6c6 */
+  --cds-icon-primary: #e6e9ee;         /* g100: #f4f4f4 */
+  --cds-icon-secondary: #9aa3af;       /* g100: #c6c6c6 */
+  --cds-interactive: #5b9df0;          /* g100: #4589ff */
+  --cds-focus: #e6e9ee;                /* g100: #ffffff */
+  --cds-link-primary: #7fb3f5;         /* g100: #78a9ff */
+  --cds-button-primary: #2f7ad8;       /* g100: #0f62fe */
+  --cds-button-primary-hover: #3a86e6; /* g100: #0050e6 */
+  --cds-button-primary-active: #2464b5;/* g100: #002d9c */
+  --cds-highlight: #1d3352;            /* g100: #002d9c */
+  --cds-support-error: #f0786b;        /* g100: #fa4d56 */
+  --esp-state-mounted: #3cc4b3;        /* 独自 */
+  --esp-state-mounted-bg: #143a36;     /* 独自 */
+  --esp-part-esp: #5b9df0;             /* 独自 */
+  --esp-part-apfs: #6b7584;            /* 独自 */
+  --esp-part-hfs: #58616e;             /* 独自 */
+  --esp-part-other: #454c57;           /* 独自 */
+}
+
+/* ===== モックの共通スタイル（値はすべてカスタムプロパティ経由） ===== */
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--cds-background); color: var(--cds-text-primary);
+  font-family: var(--esp-font-sans); font-size: 14px; line-height: 1.43;
+}
+.mono { font-family: var(--esp-font-mono); }
+.muted { color: var(--cds-text-secondary); }
+
+/* モックの外側（評価用の枠。アプリのUIではない） */
+.mock-bar { position: sticky; top: 0; z-index: 50; display: flex; gap: var(--cds-spacing-05); align-items: center; flex-wrap: wrap;
+  padding: var(--cds-spacing-03) var(--cds-spacing-06); background: var(--cds-layer-02); border-bottom: 1px solid var(--cds-border-subtle-01); font-size: 12px; }
+.mock-bar strong { font-weight: 600; }
+.mock-bar .grp { display: flex; gap: var(--cds-spacing-02); align-items: center; }
+.mock-bar button { font: inherit; padding: 2px 10px; border: 1px solid var(--cds-border-strong-01); background: var(--cds-layer-01); color: var(--cds-text-primary); border-radius: var(--esp-radius-sm); cursor: pointer; }
+.mock-bar button[aria-pressed="true"] { background: var(--cds-interactive); color: var(--cds-text-on-color); border-color: var(--cds-interactive); }
+.mock-wrap { max-width: 1240px; margin: 0 auto; padding: var(--cds-spacing-06); }
+.mock-intro { padding: var(--cds-spacing-05); border-left: 3px solid var(--cds-interactive); background: var(--cds-layer-01); margin-bottom: var(--cds-spacing-07); }
+.mock-intro p { margin: 4px 0; }
+section[data-screen] { margin-bottom: 56px; }
+.screen-head { display: flex; align-items: baseline; gap: var(--cds-spacing-04); margin: 0 0 var(--cds-spacing-04); }
+.screen-head h2 { margin: 0; font-size: 20px; font-weight: 600; }
+.screen-head .sid { font-family: var(--esp-font-mono); color: var(--cds-text-secondary); }
+.state { margin: var(--cds-spacing-07) 0 var(--cds-spacing-04); }
+.state h3 { margin: 0 0 4px; font-size: 15px; font-weight: 600; }
+.state h3 .sid { font-family: var(--esp-font-mono); color: var(--cds-text-secondary); margin-right: 8px; }
+.state p.note { margin: 0 0 var(--cds-spacing-04); color: var(--cds-text-secondary); font-size: 13px; }
+.compare { display: grid; grid-template-columns: 1fr; gap: var(--cds-spacing-06); }
+.compare-label { font-weight: 600; margin-bottom: 6px; }
+.compare-label .tagline { font-weight: 400; color: var(--cds-text-secondary); margin-left: 8px; }
+
+/* ===== macOSのウィンドウ枠 ===== */
+.win { width: 1100px; max-width: 100%; height: 720px; margin: 0 auto; display: flex; flex-direction: column; overflow: hidden;
+  background: var(--cds-background); border: 1px solid var(--cds-border-subtle-01); border-radius: 10px; box-shadow: 0 12px 40px var(--cds-shadow); position: relative; }
+.win.small { width: 640px; height: auto; }
+.titlebar { height: 44px; flex: none; display: flex; align-items: center; gap: var(--cds-spacing-04); padding: 0 var(--cds-spacing-04) 0 var(--cds-spacing-05);
+  background: var(--cds-layer-01); border-bottom: 1px solid var(--cds-border-subtle-01); }
+.lights { display: flex; gap: 8px; width: 60px; flex: none; }
+.lights i { width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; display: block; }
+.lights i:nth-child(2) { background: #febc2e; } .lights i:nth-child(3) { background: #28c840; }
+.titlebar .appname { font-weight: 600; font-size: 13px; }
+.titlebar .spacer { flex: 1; }
+
+/* ===== Carbonの部品（見た目の写し） ===== */
+.btn { font: inherit; font-size: 13px; height: 32px; padding: 0 var(--cds-spacing-05); display: inline-flex; align-items: center; gap: var(--cds-spacing-03);
+  border: 1px solid transparent; border-radius: var(--esp-radius-sm); cursor: pointer; white-space: nowrap;
+  transition: background var(--cds-duration-fast-02) var(--cds-easing-productive); }
+.btn svg { width: 16px; height: 16px; fill: currentColor; flex: none; }
+.btn-primary { background: var(--cds-button-primary); color: var(--cds-text-on-color); }
+.btn-primary:hover, .btn-primary.is-hover { background: var(--cds-button-primary-hover); }
+.btn-secondary { background: var(--cds-button-secondary); color: var(--cds-text-on-color); }
+.btn-secondary:hover, .btn-secondary.is-hover { background: var(--cds-button-secondary-hover); }
+.btn-tertiary { background: transparent; color: var(--cds-interactive); border-color: var(--cds-interactive); }
+.btn-tertiary:hover, .btn-tertiary.is-hover { background: var(--cds-interactive); color: var(--cds-text-on-color); }
+.btn-ghost { background: transparent; color: var(--cds-link-primary); padding: 0 var(--cds-spacing-04); }
+.btn-ghost:hover, .btn-ghost.is-hover { background: var(--cds-layer-hover-01); }
+.btn-icon { width: 32px; padding: 0; justify-content: center; color: var(--cds-icon-primary); background: transparent; }
+.btn-icon:hover, .btn-icon.is-hover { background: var(--cds-layer-hover-01); }
+.btn:focus-visible, .btn.is-focus { outline: 2px solid var(--cds-focus); outline-offset: -2px; box-shadow: inset 0 0 0 3px var(--cds-layer-01); }
+.btn[disabled], .btn.is-disabled { background: var(--cds-button-disabled); color: var(--cds-text-disabled); border-color: transparent; cursor: not-allowed; }
+.btn-tertiary[disabled] { background: transparent; border-color: var(--cds-button-disabled); }
+.btn-ghost[disabled] { background: transparent; }
+
+.switcher { display: flex; border: 1px solid var(--cds-border-strong-01); border-radius: var(--esp-radius-sm); overflow: hidden; height: 32px; }
+.switcher button { font: inherit; font-size: 12px; flex: 1 1 auto; border: 0; border-right: 1px solid var(--cds-border-subtle-01); background: var(--cds-layer-01); color: var(--cds-text-secondary); padding: 0 var(--cds-spacing-04); cursor: pointer; white-space: nowrap; }
+.switcher button:last-child { border-right: 0; }
+.switcher button[aria-selected="true"] { background: var(--cds-text-primary); color: var(--cds-layer-01); }
+
+.tag { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 8px; border-radius: 10px; font-size: 12px; white-space: nowrap;
+  background: var(--cds-layer-selected-01); color: var(--cds-text-primary); }
+.tag.mounted { background: var(--esp-state-mounted-bg); color: var(--esp-state-mounted); }
+.tag.mounted::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.tag.esp { background: var(--cds-highlight); color: var(--cds-link-primary); }
+.tag.boot { background: transparent; border: 1px solid var(--cds-border-strong-01); color: var(--cds-text-secondary); }
+.tag.boot svg { width: 12px; height: 12px; fill: currentColor; }
+
+.toggle { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.toggle .track { width: 48px; height: 24px; border-radius: 12px; background: var(--cds-border-strong-01); position: relative; flex: none; }
+.toggle .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--cds-layer-01); transition: left var(--cds-duration-fast-02) var(--cds-easing-productive); }
+.toggle.on .track { background: var(--esp-state-mounted); }
+.toggle.on .track::after { left: 27px; }
+
+.select { position: relative; height: 32px; min-width: 200px; display: inline-flex; align-items: center; padding: 0 36px 0 var(--cds-spacing-05);
+  background: var(--cds-field-01); border-bottom: 1px solid var(--cds-border-strong-01); font-size: 13px; }
+.select::after { content: ""; position: absolute; right: 14px; top: 12px; border: 5px solid transparent; border-top-color: var(--cds-icon-primary); }
+
+.table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.table th { text-align: left; font-weight: 600; background: var(--cds-layer-selected-01); padding: 6px var(--cds-spacing-05); height: 32px; white-space: nowrap; }
+.table td { padding: 6px var(--cds-spacing-05); border-top: 1px solid var(--cds-border-subtle-01); height: 32px; }
+.table tr:hover td { background: var(--cds-layer-hover-01); }
+.table td.num, .table th.num { text-align: right; }
+
+.notif { display: flex; gap: var(--cds-spacing-04); align-items: flex-start; padding: var(--cds-spacing-04) var(--cds-spacing-05); background: var(--cds-layer-01);
+  border-left: 3px solid var(--esp-state-mounted); box-shadow: 0 2px 8px var(--cds-shadow); max-width: 440px; font-size: 13px; }
+.notif.error { border-left-color: var(--cds-support-error); }
+.notif .ic { width: 20px; height: 20px; flex: none; fill: var(--esp-state-mounted); }
+.notif.error .ic { fill: var(--cds-support-error); }
+.notif .ttl { font-weight: 600; }
+.notif .body { margin-top: 2px; }
+.notif .actions { margin-top: var(--cds-spacing-03); display: flex; gap: var(--cds-spacing-03); }
+.notif .cmd { margin-top: 6px; font-family: var(--esp-font-mono); font-size: 12px; color: var(--cds-text-secondary); word-break: break-all; }
+.toast-layer { position: absolute; right: var(--cds-spacing-05); bottom: 44px; display: flex; flex-direction: column; gap: var(--cds-spacing-03); z-index: 5; }
+
+.modal-layer { position: absolute; inset: 44px 0 0 0; background: var(--cds-overlay); display: flex; align-items: center; justify-content: center; z-index: 6; }
+.modal { width: 460px; max-width: 90%; background: var(--cds-layer-01); border-radius: var(--esp-radius-md); overflow: hidden; }
+.modal .hd { padding: var(--cds-spacing-05) var(--cds-spacing-05) 0; }
+.modal .hd .lbl { font-size: 12px; color: var(--cds-text-secondary); }
+.modal .hd h4 { margin: 2px 0 0; font-size: 18px; font-weight: 500; overflow-wrap: anywhere; }
+.modal .bd { padding: var(--cds-spacing-04) var(--cds-spacing-05) var(--cds-spacing-07); font-size: 14px; }
+.modal .ft { display: flex; }
+.modal .ft .btn { flex: 1; height: 56px; border-radius: 0; align-items: flex-start; padding-top: 14px; }
+
+.skeleton { background: var(--cds-layer-selected-01); border-radius: var(--esp-radius-sm); animation: pulse 1.4s var(--cds-easing-productive) infinite; }
+@keyframes pulse { 50% { opacity: .45; } }
+.spinner { width: 16px; height: 16px; border: 2px solid var(--cds-border-subtle-01); border-top-color: var(--cds-interactive); border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===== アプリの画面 ===== */
+.body-row { flex: 1; display: flex; min-height: 0; }
+.sidebar { width: 300px; flex: none; display: flex; flex-direction: column; background: var(--cds-layer-01); border-right: 1px solid var(--cds-border-subtle-01); min-height: 0; }
+.sidebar .sb-head { padding: var(--cds-spacing-05) var(--cds-spacing-05) var(--cds-spacing-04); display: flex; flex-direction: column; gap: var(--cds-spacing-04); }
+.sb-title { display: flex; justify-content: space-between; align-items: baseline; font-weight: 600; font-size: 13px; }
+.sb-title .muted { font-weight: 400; font-size: 12px; }
+.devlist { flex: 1; overflow: auto; }
+.dev { display: flex; gap: var(--cds-spacing-04); padding: var(--cds-spacing-04) var(--cds-spacing-05); border-top: 1px solid var(--cds-border-subtle-01); cursor: pointer; position: relative; }
+.dev:hover { background: var(--cds-layer-hover-01); }
+.dev.sel { background: var(--cds-layer-selected-01); }
+.dev.sel::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--cds-interactive); }
+.dev .di { width: 24px; height: 24px; flex: none; fill: var(--cds-icon-secondary); margin-top: 2px; }
+.dev .dn { font-weight: 500; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dev .dm { font-size: 12px; color: var(--cds-text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dev .dt { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+.dev .txt { min-width: 0; flex: 1; }
+.more { font-size: 11px; font-weight: 400; color: var(--cds-text-secondary); }
+.dhead .vendor { font-size: 13px; color: var(--cds-text-secondary); margin-top: 2px; }
+.minibar { display: flex; height: 4px; margin-top: 6px; gap: 1px; }
+.minibar span { display: block; height: 100%; }
+
+.main { flex: 1; overflow: auto; padding: var(--cds-spacing-06); display: flex; flex-direction: column; gap: var(--cds-spacing-06); min-width: 0; }
+.dhead { display: flex; gap: var(--cds-spacing-05); align-items: flex-start; }
+.dhead .di { width: 40px; height: 40px; fill: var(--cds-icon-secondary); flex: none; }
+.dhead h1 { margin: 0; font-size: 20px; font-weight: 500; overflow-wrap: anywhere; }
+.dhead .meta { display: flex; flex-wrap: wrap; gap: 4px var(--cds-spacing-06); margin-top: 6px; font-size: 12px; }
+.dhead .meta div span:first-child { color: var(--cds-text-secondary); margin-right: 6px; }
+.dhead .path { font-family: var(--esp-font-mono); font-size: 12px; color: var(--cds-text-secondary); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; text-align: left; }
+.dhead .grow { flex: 1; min-width: 0; }
+.sect-title { font-size: 14px; font-weight: 600; margin: 0 0 var(--cds-spacing-04); display: flex; gap: 8px; align-items: baseline; }
+.sect-title .muted { font-weight: 400; font-size: 12px; }
+
+.band { display: flex; height: 28px; gap: 2px; }
+.band .seg { position: relative; height: 100%; min-width: 10px; border-radius: var(--esp-radius-sm); }
+.band .seg.esp { background: var(--esp-part-esp); }
+.band .seg.esp.mounted { background: var(--esp-state-mounted); }
+.band .seg.apfs { background: var(--esp-part-apfs); }
+.band .seg.hfs { background: var(--esp-part-hfs); }
+.band .seg.other { background: var(--esp-part-other); }
+.band .seg.esp { min-width: 18px; }
+.band-labels { display: flex; gap: 2px; margin-top: 4px; font-size: 11px; color: var(--cds-text-secondary); }
+.band-labels span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 10px; }
+.band-labels .esp { min-width: 18px; color: var(--cds-link-primary); }
+.legend { display: flex; gap: var(--cds-spacing-05); font-size: 12px; color: var(--cds-text-secondary); margin-top: var(--cds-spacing-03); flex-wrap: wrap; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+
+.esp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--cds-spacing-04); }
+.esp-tile { background: var(--cds-layer-01); border: 1px solid var(--cds-border-subtle-01); border-radius: var(--esp-radius-md); padding: var(--cds-spacing-05); display: flex; flex-direction: column; gap: var(--cds-spacing-04); }
+.esp-tile.mounted { border-color: var(--esp-state-mounted); }
+.esp-tile .row1 { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+.esp-tile .id { font-family: var(--esp-font-mono); font-size: 16px; font-weight: 500; }
+.esp-tile .nm { font-size: 12px; color: var(--cds-text-secondary); }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 2px var(--cds-spacing-04); font-size: 12px; }
+.kv dt { color: var(--cds-text-secondary); }
+.kv dd { margin: 0; overflow-wrap: anywhere; }
+.esp-tile .acts { display: flex; gap: var(--cds-spacing-03); flex-wrap: wrap; }
+
+.statusbar { height: 28px; flex: none; display: flex; align-items: center; gap: var(--cds-spacing-05); padding: 0 var(--cds-spacing-05); font-size: 12px;
+  background: var(--cds-layer-01); border-top: 1px solid var(--cds-border-subtle-01); color: var(--cds-text-secondary); }
+.statusbar .priv { display: inline-flex; align-items: center; gap: 4px; color: var(--esp-state-mounted); }
+.statusbar .priv svg { width: 12px; height: 12px; fill: currentColor; }
+.statusbar .cmd { font-family: var(--esp-font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; text-align: right; }
+
+.empty { margin: auto; text-align: center; max-width: 360px; padding: var(--cds-spacing-07); }
+.empty svg { width: 48px; height: 48px; fill: var(--cds-icon-secondary); }
+.empty h4 { margin: var(--cds-spacing-04) 0 4px; font-size: 16px; font-weight: 500; }
+.empty p { margin: 0; color: var(--cds-text-secondary); font-size: 13px; }
+
+/* ESPの容量とゴミ箱 */
+.capbar { display: flex; height: 6px; margin-top: 4px; background: var(--cds-layer-selected-01); border-radius: var(--esp-radius-sm); overflow: hidden; max-width: 220px; }
+.capbar .u { background: var(--esp-part-apfs); }
+.capbar .tr { background: var(--cds-support-warning); }
+.caplegend { display: flex; gap: var(--cds-spacing-04); margin-top: 4px; font-size: 11px; color: var(--cds-text-secondary); }
+.caplegend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 3px; }
+.caplegend i.u { background: var(--esp-part-apfs); } .caplegend i.tr { background: var(--cds-support-warning); } .caplegend i.f { background: var(--cds-layer-selected-01); border: 1px solid var(--cds-border-subtle-01); }
+.low { color: var(--cds-support-error); }
+.inline-warn { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; padding: var(--cds-spacing-03) var(--cds-spacing-04); background: var(--cds-layer-02); border-left: 3px solid var(--cds-support-warning); }
+.inline-warn svg { width: 16px; height: 16px; flex: none; fill: var(--cds-support-warning); }
+
+/* パーティション表の入れ子（APFSコンテナとボリューム） */
+.tree-btn { font: inherit; width: 20px; height: 20px; margin-right: 4px; border: 0; background: transparent; color: var(--cds-icon-secondary); cursor: pointer; border-radius: var(--esp-radius-sm); }
+.tree-btn:hover { background: var(--cds-layer-hover-01); }
+.tree-pad { display: inline-block; width: 24px; }
+.tree-parent { cursor: pointer; }
+.tree-child td { background: var(--cds-layer-02); color: var(--cds-text-secondary); }
+.tree-child td:nth-child(2) { color: var(--cds-text-primary); }
+.tree-child.l1 td:first-child { padding-left: calc(var(--cds-spacing-05) + 24px); }
+.tree-child.l2 td:first-child { padding-left: calc(var(--cds-spacing-05) + 44px); }
+.tree-child td:first-child::before { content: "└ "; color: var(--cds-border-strong-01); }
+
+/* 設定 */
+.settings { padding: var(--cds-spacing-06); display: flex; flex-direction: column; gap: var(--cds-spacing-06); background: var(--cds-layer-01); }
+.settings .grp h5 { margin: 0 0 var(--cds-spacing-04); font-size: 12px; font-weight: 600; color: var(--cds-text-secondary); text-transform: none; }
+.settings .item { display: flex; justify-content: space-between; align-items: center; gap: var(--cds-spacing-05); padding: var(--cds-spacing-03) 0; border-bottom: 1px solid var(--cds-border-subtle-01); font-size: 13px; }
+.settings .item:last-child { border-bottom: 0; }
+
+/* 操作ログ */
+.log { background: var(--cds-layer-01); display: flex; flex-direction: column; }
+.log .lh { display: flex; justify-content: space-between; align-items: center; padding: var(--cds-spacing-04) var(--cds-spacing-05); }
+.log td.cmd { font-family: var(--esp-font-mono); font-size: 12px; word-break: break-all; }
+.res-ok { color: var(--esp-state-mounted); } .res-fail { color: var(--cds-support-error); } .res-cancel { color: var(--cds-text-secondary); }
+
+/* 部品の状態 */
+.parts { background: var(--cds-layer-01); padding: var(--cds-spacing-06); border: 1px solid var(--cds-border-subtle-01); display: grid; grid-template-columns: 140px repeat(4, max-content); gap: var(--cds-spacing-04) var(--cds-spacing-06); align-items: center; font-size: 12px; }
+.parts .h { color: var(--cds-text-secondary); }
+
+/* 決まったこと／決めたいこと */
+.decisions { background: var(--cds-layer-01); padding: var(--cds-spacing-06); border: 1px solid var(--cds-border-subtle-01); margin-bottom: var(--cds-spacing-06); }
+.decisions h2 { margin: 0 0 var(--cds-spacing-04); font-size: 18px; }
+.decisions li { margin: 6px 0; }
+</style>
+</head>
+<body>
+
+<div class="mock-bar">
+  <strong>esp_latch モック</strong>
+  <div class="grp">言語
+    <button data-lang="ja" aria-pressed="true">日本語</button>
+    <button data-lang="en" aria-pressed="false">English</button>
+    <button data-lang="zh-Hans" aria-pressed="false">中文</button>
+  </div>
+  <div class="grp">外観
+    <button data-theme-set="light" aria-pressed="true">ライト</button>
+    <button data-theme-set="dark" aria-pressed="false">ダーク</button>
+  </div>
+</div>
+
+<div class="mock-wrap">
+  <div class="mock-intro">
+    <p><strong>このページは見た目だけで、中身はありません。</strong>ボタンを押してもディスクは操作されません（デバイスの選択と絞り込みの切り替えだけ動きます）。</p>
+    <p>部品はCarbon Design System v11の見た目を写し、色・書体・角丸をブランドトークンで上書きしています。ディスクの名前や容量は架空の例です。</p>
+  </div>
+
+  <!-- ================= S03 ================= -->
+  <section data-screen="S03">
+    <div class="screen-head"><span class="sid">S03</span><h2>操作ログ</h2></div>
+    <p class="note muted">ツールバーから開く別ウィンドウ。アプリが実行したコマンドと結果を、起動中の分だけ残す（ファイルには保存しない）。</p>
+    <div class="state"><h3><span class="sid">S03</span>記録あり</h3><div class="win small" id="log-win" style="width:820px"></div></div>
+    <div class="state"><h3><span class="sid">S03a</span>空</h3><div class="win small" id="log-win-empty" style="width:820px"></div></div>
+  </section>
+</div>
+
+<script>
+/* ===== 辞書（文言はすべてここから参照する） ===== */
+const DICT = {
+  ja: {
+    "app.name": "ESP Latch",
+    "toolbar.refresh": "更新",
+    "toolbar.settings": "設定",
+    "toolbar.log": "操作ログ",
+    "log.title": "操作ログ",
+    "log.copy": "コピー",
+    "log.clear": "消去",
+    "log.col.time": "時刻",
+    "log.col.command": "コマンド",
+    "log.col.result": "結果",
+    "log.result.ok": "成功",
+    "log.result.fail": "失敗",
+    "log.result.cancelled": "キャンセル",
+    "log.empty.title": "まだ操作はありません",
+    "log.empty.body": "マウントや取り外しを行うと、実行したコマンドがここに記録されます。"
+  },
+  en: {
+    "app.name": "ESP Latch",
+    "toolbar.refresh": "Refresh",
+    "toolbar.settings": "Settings",
+    "toolbar.log": "Activity Log",
+    "log.title": "Activity Log",
+    "log.copy": "Copy",
+    "log.clear": "Clear",
+    "log.col.time": "Time",
+    "log.col.command": "Command",
+    "log.col.result": "Result",
+    "log.result.ok": "Succeeded",
+    "log.result.fail": "Failed",
+    "log.result.cancelled": "Cancelled",
+    "log.empty.title": "No activity yet",
+    "log.empty.body": "Commands run when you mount or unmount will be recorded here."
+  },
+  "zh-Hans": {
+    "app.name": "ESP Latch",
+    "toolbar.refresh": "刷新",
+    "toolbar.settings": "设置",
+    "toolbar.log": "操作日志",
+    "log.title": "操作日志",
+    "log.copy": "复制",
+    "log.clear": "清除",
+    "log.col.time": "时间",
+    "log.col.command": "命令",
+    "log.col.result": "结果",
+    "log.result.ok": "成功",
+    "log.result.fail": "失败",
+    "log.result.cancelled": "已取消",
+    "log.empty.title": "暂无操作",
+    "log.empty.body": "挂载或卸载时执行的命令会记录在这里。"
+  }
+};
+
+let LANG = "ja";
+function t(key, args = {}) {
+  let v = DICT[LANG][key];
+  if (v === undefined) return "⟦" + key + "⟧";
+  if (typeof v === "object") {
+    const cat = new Intl.PluralRules(LANG).select(args.count ?? 0);
+    v = v[cat] ?? v.other;
+  }
+  return v.replace(/\{(\w+)\}/g, (_, k) => args[k] ?? "");
+}
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+function size(bytes) {
+  const units = [["TB", 1e12], ["GB", 1e9], ["MB", 1e6], ["KB", 1e3]];
+  for (const [u, d] of units) if (bytes >= d) return new Intl.NumberFormat(LANG, { maximumFractionDigits: bytes / d >= 100 ? 0 : 1 }).format(bytes / d) + " " + u;
+  return bytes + " B";
+}
+function time(h, m, s) { return new Intl.DateTimeFormat(LANG, { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }).format(new Date(2026, 10, 18, h, m, s)); }
+
+/* ===== アイコン（単純な図形） ===== */
+const IC = {
+  internal: '<svg viewBox="0 0 32 32"><path d="M4 9a3 3 0 0 1 3-3h18a3 3 0 0 1 3 3v14a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3zm3-1a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1zm15 11a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM9 11h14v2H9z"/></svg>',
+  external: '<svg viewBox="0 0 32 32"><path d="M11 3h10v8h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V13a2 2 0 0 1 2-2h2zm2 2v6h6V5zm-4 8v14h14V13zm4-6h2v2h-2zm4 0h2v2h-2z"/></svg>',
+  image: '<svg viewBox="0 0 32 32"><path d="M16 4a12 12 0 1 1 0 24 12 12 0 0 1 0-24zm0 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 7a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm0 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>',
+  eject: '<svg viewBox="0 0 16 16"><path d="M8 2l6 7H2zM2 11h12v2H2z"/></svg>',
+  refresh: '<svg viewBox="0 0 16 16"><path d="M13 3v4H9l1.6-1.6A4.5 4.5 0 1 0 12.5 9h1.5A6 6 0 1 1 11.7 4.3z"/></svg>',
+  settings: '<svg viewBox="0 0 16 16"><path d="M7 1h2l.4 2a5 5 0 0 1 1.3.7l1.9-.7 1 1.7-1.5 1.4a5 5 0 0 1 0 1.5l1.5 1.4-1 1.7-1.9-.7a5 5 0 0 1-1.3.8L9 15H7l-.4-2a5 5 0 0 1-1.3-.8l-1.9.7-1-1.7 1.5-1.4a5 5 0 0 1 0-1.5L2.4 6.4l1-1.7 1.9.7A5 5 0 0 1 6.6 3zm1 5a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg>',
+  log: '<svg viewBox="0 0 16 16"><path d="M3 2h10v12H3zm2 2v8h6V4zm1 1h4v1H6zm0 2h4v1H6zm0 2h3v1H6z"/></svg>',
+  mount: '<svg viewBox="0 0 16 16"><path d="M8 14l-6-7h12zM2 3h12v2H2z"/></svg>',
+  folder: '<svg viewBox="0 0 16 16"><path d="M1 3h5l1.5 1.5H15V13H1zm1.5 3v5.5h11V6z"/></svg>',
+  ok: '<svg viewBox="0 0 20 20"><path d="M10 1a9 9 0 1 1 0 18 9 9 0 0 1 0-18zm-1.2 12.3l5.7-5.7-1.1-1.1-4.6 4.6-2.3-2.3-1.1 1.1z"/></svg>',
+  err: '<svg viewBox="0 0 20 20"><path d="M10 1a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM9 5v6h2V5zm0 8v2h2v-2z"/></svg>',
+  trash: '<svg viewBox="0 0 16 16"><path d="M6 1h4v1.5h4V4H2V2.5h4zM3 5h10l-.8 10H3.8zm2.5 2v6H7V7zm3 0v6H10V7z"/></svg>',
+  warn: '<svg viewBox="0 0 16 16"><path d="M8 1l7.5 13.5h-15zM7.2 6v4.5h1.6V6zm0 5.5v1.6h1.6v-1.6z"/></svg>',
+  lock: '<svg viewBox="0 0 16 16"><path d="M5 7V5a3 3 0 0 1 6 0v2h1v7H4V7zm1.5 0h3V5a1.5 1.5 0 0 0-3 0z"/></svg>',
+  boot: '<svg viewBox="0 0 16 16"><path d="M8 1v7h-1.5V1zm-3.6 2.3l1 1.1A4.5 4.5 0 1 0 10.6 4.4l1-1.1A6 6 0 1 1 4.4 3.3z" transform="translate(.75 0)"/></svg>'
+};
+
+/* ===== 例のデータ（架空） ===== */
+const G = 1e9, M = 1e6;
+function baseDevices() {
+  return [
+    { id: "disk0", name: "Samsung SSD 970 EVO Plus 1TB", kind: "internal", protocol: "PCI-Express", scheme: "GUID", size: 1000.2 * G, parts: [
+      { id: "disk0s1", type: "esp", name: "EFI", fs: "FAT32", size: 209.7 * M, mounted: null, boot: true, loader: null },
+      { id: "disk0s2", type: "apfs", name: "Container disk1", fs: "APFS", size: 999.99 * G, mounted: null,
+        container: { id: "disk1", size: 999.99 * G, volumes: [
+          { id: "disk1s1", name: "Macintosh HD - Data", used: 412.6 * G, mounted: "/System/Volumes/Data" },
+          { id: "disk1s2", name: "Preboot", used: 7.9 * G, mounted: "/System/Volumes/Preboot" },
+          { id: "disk1s3", name: "Recovery", used: 1.9 * G, mounted: null },
+          { id: "disk1s4", name: "VM", used: 2.1 * G, mounted: "/System/Volumes/VM" },
+          { id: "disk1s5", name: "Macintosh HD", used: 11.2 * G, mounted: "/" } ] } } ] },
+    { id: "disk2", name: "SanDisk Ultra Fit", kind: "external", protocol: "USB", scheme: "GUID", size: 30.8 * G, parts: [
+      { id: "disk2s1", type: "esp", name: "EFI", fs: "FAT32", size: 209.7 * M, mounted: null, loader: null },
+      { id: "disk2s2", type: "hfs", name: "Install macOS Sequoia", fs: "HFS+", size: 30.5 * G, mounted: "/Volumes/Install macOS Sequoia" } ] },
+    { id: "disk4", name: "WD_BLACK SN850X 2000GB", kind: "external", protocol: "USB", scheme: "GUID", size: 2000.4 * G, parts: [
+      { id: "disk4s1", type: "esp", name: "SYSTEM", fs: "FAT32", size: 104.9 * M, mounted: null, loader: null },
+      { id: "disk4s2", type: "other", name: "Microsoft Reserved", fs: "—", size: 16.8 * M, mounted: null },
+      { id: "disk4s3", type: "other", name: "Windows", fs: "NTFS", size: 1999.6 * G, mounted: "/Volumes/Windows" },
+      { id: "disk4s4", type: "other", name: "Windows RE", fs: "NTFS", size: 700 * M, mounted: null } ] },
+    { id: "disk6", name: "OC-1.0.6-USB.dmg", kind: "image", protocol: "Disk Image", scheme: "GUID", size: 524.3 * M, image: "/Users/rin/Hackintosh/Backups/OC-1.0.6-USB.dmg", store: "disk1s1", parts: [
+      { id: "disk6s1", type: "esp", name: "EFI", fs: "FAT32", size: 209.7 * M, mounted: null, loader: null },
+      { id: "disk6s2", type: "hfs", name: "OC Backup", fs: "HFS+", size: 314.4 * M, mounted: "/Volumes/OC Backup" } ] },
+    { id: "disk8", name: "Kingston DataTraveler 3.0", kind: "external", protocol: "USB", scheme: "MBR", size: 61.9 * G, parts: [
+      { id: "disk8s1", type: "other", name: "KINGSTON", fs: "ExFAT", size: 61.9 * G, mounted: "/Volumes/KINGSTON" } ] }
+  ];
+}
+function manyDevices() {
+  const d = baseDevices();
+  const extra = [
+    ["JMicron Generic USB 3.2 Gen 2 NVMe SSD Enclosure Media (JMS583 Bridge Controller)", "disk10", 512.1 * G, "Hackintosh Build Archive 2026 – Sonoma / Sequoia / Tahoe EFI Collection"],
+    ["Crucial X9 Pro", "disk11", 1000.2 * G, "Time Machine"], ["Samsung Portable SSD T7 Shield", "disk12", 2000.4 * G, "Media"],
+    ["Transcend JetFlash 790", "disk13", 32.0 * G, "OC-RECOVERY"], ["Lexar JumpDrive S47", "disk14", 64.0 * G, "Ventura Installer"],
+    ["SanDisk Extreme Pro USB 3.2 Solid State Flash Drive", "disk15", 256.1 * G, "Work"], ["Kioxia TransMemory U301", "disk16", 16.0 * G, "EFI-TEST"]
+  ];
+  let n = 20;
+  for (const [name, id, sz, label] of extra) { const cid = "disk" + (n++); d.push({ id, name, kind: "external", protocol: "USB", scheme: "GUID", size: sz, parts: [
+    { id: id + "s1", type: "esp", name: "EFI", fs: "FAT32", size: 209.7 * M, mounted: null, loader: null },
+    { id: id + "s2", type: "apfs", name: "Container " + cid, fs: "APFS", size: sz - 209.7 * M, mounted: null,
+      container: { id: cid, size: sz - 209.7 * M, volumes: [{ id: cid + "s1", name: label, used: sz * 0.4, mounted: "/Volumes/" + label }] } } ] }); }
+  return d;
+}
+
+/* ===== 状態の定義 ===== */
+function stateData(state) {
+  let devices = state === "many" ? manyDevices() : baseDevices();
+  const s = { nameMode: "label", expanded: new Set(state === "normal" || state === "image" ? ["disk0s2"] : []), devices, filter: "all", sel: "disk0", toast: null, modal: null, loading: false, busy: null, lastCmd: "diskutil list -plist", statusKey: "ready" };
+  const find = id => devices.find(x => x.id === id);
+  if (state === "mounted") {
+    s.sel = "disk2";
+    const p = find("disk2").parts[0]; p.mounted = "/Volumes/EFI"; p.loader = "OpenCore 1.0.6"; p.used = 41.9 * M; p.trash = 0;
+    const q = find("disk0").parts[0]; q.mounted = "/Volumes/EFI 1"; q.loader = "OpenCore 1.0.6"; q.used = 38.4 * M; q.trash = 0;
+    s.toast = { kind: "ok", title: t("toast.mount_success.title"), body: t("toast.mount_success.body", { id: "disk2s1", path: "/Volumes/EFI" }), actions: [] };
+    s.lastCmd = "diskutil mount disk2s1"; s.privileged = true;
+  }
+  if (state === "image") { s.sel = "disk6"; }
+  if (state === "no_esp") { s.sel = "disk8"; }
+  if (state === "no_match") { s.filter = "esp"; s.devices = devices.filter(d => d.id === "disk8"); s.sel = "disk8"; }
+  if (state === "loading") { s.loading = true; s.statusKey = "loading"; }
+  if (state === "auth_waiting") {
+    s.sel = "disk4"; s.busy = "disk4s1"; s.statusKey = "waiting";
+    s.lastCmd = "osascript -e 'do shell script \"/Applications/ESP Latch.app/Contents/MacOS/esp-latch-helper\" with administrator privileges'";
+  }
+  if (state === "auth_cancelled") {
+    s.sel = "disk4";
+    s.toast = { kind: "error", title: t("toast.auth_cancelled.title"), body: t("toast.auth_cancelled.body"), actions: ["toast.retry"] };
+    s.lastCmd = "osascript -e 'do shell script \"/Applications/ESP Latch.app/Contents/MacOS/esp-latch-helper\" with administrator privileges'";
+  }
+  if (state === "mount_failed") {
+    s.sel = "disk4";
+    s.toast = { kind: "error", title: t("toast.mount_failed.title"), body: "Volume on disk4s1 failed to mount; if it has a partitioning scheme, use \"diskutil mountDisk\"", cmd: "diskutil mount disk4s1", actions: ["toast.retry", "toast.show_log"] };
+    s.lastCmd = "diskutil mount disk4s1"; s.privileged = true;
+  }
+  if (state === "eject_confirm") { s.sel = "disk2"; s.modal = "eject"; s.privileged = true; }
+  if (state === "many") { s.sel = "disk10"; }
+  if (state === "trash" || state === "trash_emptied") {
+    s.sel = "disk2"; s.privileged = true;
+    const p = find("disk2").parts[0]; p.mounted = "/Volumes/EFI"; p.loader = "OpenCore 1.0.7"; p.used = 43.6 * M; p.trash = state === "trash" ? 151.2 * M : 0;
+    s.lastCmd = "diskutil mount disk2s1";
+    if (state === "trash_emptied") {
+      s.toast = { kind: "ok", title: t("toast.trash_emptied.title"), body: t("toast.trash_emptied.body", { id: "disk2s1", size: size(151.2 * M) }), actions: [] };
+      s.lastCmd = "rm -rf /Volumes/EFI/.Trashes";
+    }
+  }
+  return s;
+}
+
+/* ===== 描画 ===== */
+function kindIcon(d) { return IC[d.kind]; }
+function espCount(d) { return d.parts.filter(p => p.type === "esp").length; }
+function mountedEsp(d) { return d.parts.filter(p => p.type === "esp" && p.mounted).length; }
+function applyFilter(devs, f) {
+  if (f === "physical") return devs.filter(d => d.kind !== "image");
+  if (f === "esp") return devs.filter(d => espCount(d) > 0);
+  return devs;
+}
+function titlebar() {
+  return `<div class="titlebar"><div class="lights"><i></i><i></i><i></i></div><span class="appname">${t("app.name")}</span><span class="spacer"></span>
+    <button class="btn btn-icon" title="${esc(t("toolbar.refresh"))}">${IC.refresh}</button>
+    <button class="btn btn-icon" title="${esc(t("toolbar.log"))}">${IC.log}</button>
+    <button class="btn btn-icon" title="${esc(t("toolbar.settings"))}">${IC.settings}</button></div>`;
+}
+function switcher(s) {
+  return `<div class="switcher" role="tablist">${["all", "esp", "physical"].map(f => `<button data-filter="${f}" aria-selected="${s.filter === f}">${t("filter." + f)}</button>`).join("")}</div>`;
+}
+function tags(d) {
+  const n = espCount(d), m = mountedEsp(d);
+  let h = `<span class="tag">${t("device.kind." + d.kind)}</span>`;
+  h += n ? `<span class="tag esp">${t("device.esp_count", { count: n })}</span>` : `<span class="tag">${t("device.esp_none")}</span>`;
+  if (m) h += `<span class="tag mounted">${t("device.mounted_count", { count: m })}</span>`;
+  return h;
+}
+function band(d, withLabels = true) {
+  const segs = d.parts.map(p => {
+    const cls = p.type + (p.type === "esp" && p.mounted ? " mounted" : "");
+    return { cls, grow: Math.max(p.size / d.size, 0.0001), p };
+  });
+  let h = `<div class="band">${segs.map(x => `<div class="seg ${x.cls}" style="flex:${x.grow} 1 0" title="${esc(x.p.id + " · " + x.p.name + " · " + size(x.p.size))}"></div>`).join("")}</div>`;
+  if (withLabels) h += `<div class="band-labels">${segs.map(x => `<span class="${x.p.type === "esp" ? "esp" : ""} mono" style="flex:${x.grow} 1 0">${x.p.type === "esp" || x.grow >= 0.04 ? x.p.id.replace(d.id, "") : ""}</span>`).join("")}</div>`;
+  return h;
+}
+function legend() {
+  return `<div class="legend"><span><i style="background:var(--esp-part-esp)"></i>${t("band.legend.esp")}</span><span><i style="background:var(--esp-state-mounted)"></i>${t("band.legend.mounted")}</span><span><i style="background:var(--esp-part-apfs)"></i>${t("band.legend.apfs")}</span><span><i style="background:var(--esp-part-hfs)"></i>${t("band.legend.hfs")}</span><span><i style="background:var(--esp-part-other)"></i>${t("band.legend.other")}</span><span>· ${t("band.note")}</span></div>`;
+}
+function espButtons(p, s) {
+  if (s.busy === p.id) return `<button class="btn btn-primary" disabled><span class="spinner"></span>${t("esp.working")}</button>`;
+  if (p.mounted && p.trash > 0) return `<button class="btn btn-secondary">${IC.eject}${t("esp.empty_trash_unmount")}</button><button class="btn btn-ghost">${IC.trash}${t("esp.empty_trash")}</button><button class="btn btn-ghost">${IC.folder}${t("esp.open_finder")}</button>`;
+  if (p.mounted) return `<button class="btn btn-secondary">${IC.eject}${t("esp.unmount")}</button><button class="btn btn-ghost">${IC.folder}${t("esp.open_finder")}</button>`;
+  return `<button class="btn btn-primary">${IC.mount}${t("esp.mount")}</button>`;
+}
+function espTile(p, s) {
+  const st = p.mounted ? `<span class="tag mounted">${t("esp.state.mounted")}</span>` : `<span class="tag">${t("esp.state.unmounted")}</span>`;
+  const boot = p.boot ? `<span class="tag boot">${IC.boot}${t("esp.boot_badge")}</span>` : "";
+  const loader = p.mounted ? (p.loader || t("esp.loader_none")) : `<span class="muted">${t("esp.loader_unknown")}</span>`;
+  return `<div class="esp-tile ${p.mounted ? "mounted" : ""}">
+    <div class="row1"><div><div class="id">${p.id}</div><div class="nm">${esc(p.name)}</div></div><div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">${boot}${st}</div></div>
+    <dl class="kv"><dt>${t("esp.size")}</dt><dd class="mono">${size(p.size)}</dd><dt>${t("esp.format")}</dt><dd class="mono">${p.fs}</dd>
+      <dt>${t("esp.mount_point")}</dt><dd class="mono">${p.mounted ? esc(p.mounted) : t("table.not_mounted")}</dd><dt>${t("esp.loader")}</dt><dd>${loader}</dd>
+      <dt>${t("esp.free")}</dt><dd>${p.mounted ? capacity(p) : `<span class="muted">${t("esp.free_unknown")}</span>`}</dd>
+      ${p.mounted ? `<dt>${t("esp.trash")}</dt><dd class="mono">${p.trash > 0 ? size(p.trash) : `<span class="muted">${t("esp.trash_none")}</span>`}</dd>` : ""}</dl>
+    ${p.mounted && p.trash > 0 ? `<div class="inline-warn">${IC.warn}<span>${esc(t("esp.trash_warning", { size: size(p.trash) }))}</span></div>` : ""}
+    <div class="acts">${espButtons(p, s)}</div></div>`;
+}
+function capacity(p) {
+  const used = p.used ?? 0, trash = p.trash ?? 0, free = Math.max(p.size - used - trash, 0);
+  const pct = x => (x / p.size * 100).toFixed(2) + "%";
+  return `<span class="mono ${free / p.size < 0.15 ? "low" : ""}">${t("esp.free_of", { free: size(free), total: size(p.size) })}</span>
+    <div class="capbar" title="${esc(t("esp.usage.used") + " " + size(used) + " · " + t("esp.usage.trash") + " " + size(trash) + " · " + t("esp.usage.free") + " " + size(free))}"><span class="u" style="width:${pct(used)}"></span><span class="tr" style="width:${pct(trash)}"></span></div>
+    <div class="caplegend"><span><i class="u"></i>${t("esp.usage.used")}</span><span><i class="tr"></i>${t("esp.usage.trash")}</span><span><i class="f"></i>${t("esp.usage.free")}</span></div>`;
+}
+function otherTable(d, s) {
+  const rows = d.parts.filter(p => p.type !== "esp");
+  if (!rows.length) return "";
+  const mp = m => m ? esc(m) : t("table.not_mounted");
+  const body = rows.map(p => {
+    let h;
+    if (p.container) {
+      const open = s.expanded && s.expanded.has(p.id);
+      h = `<tr class="tree-parent" data-toggle="${p.id}"><td class="mono"><button class="tree-btn" aria-expanded="${open}" title="${esc(t("other.toggle_container"))}">${open ? "▾" : "▸"}</button>${p.id}</td><td>${esc(p.name)} <span class="muted">· ${t("other.volume_count", { count: p.container.volumes.length })}</span></td><td class="mono">${p.fs}</td><td class="num mono">${size(p.size)}</td><td class="mono">${mp(p.mounted)}</td></tr>`;
+      if (open) {
+        h += `<tr class="tree-child l1"><td class="mono">${p.container.id}</td><td>${t("other.container_label")}</td><td class="mono">APFS</td><td class="num mono">${size(p.container.size)}</td><td class="mono">${t("table.not_mounted")}</td></tr>`;
+        h += p.container.volumes.map(v => `<tr class="tree-child l2"><td class="mono">${v.id}</td><td>${esc(v.name)}</td><td class="mono">APFS</td><td class="num mono">${t("table.volume_used", { size: size(v.used) })}</td><td class="mono">${mp(v.mounted)}</td></tr>`).join("");
+      }
+    } else {
+      h = `<tr><td class="mono"><span class="tree-pad"></span>${p.id}</td><td>${esc(p.name)}</td><td class="mono">${p.fs}</td><td class="num mono">${size(p.size)}</td><td class="mono">${mp(p.mounted)}</td></tr>`;
+    }
+    return h;
+  }).join("");
+  return `<div><h3 class="sect-title">${t("other.section_title")}</h3><table class="table"><thead><tr><th>${t("table.identifier")}</th><th>${t("table.name")}</th><th>${t("table.type")}</th><th class="num">${t("table.size")}</th><th>${t("table.mount_point")}</th></tr></thead><tbody>${body}</tbody></table></div>`;
+}
+function statusbar(s) {
+  const left = s.loading ? t("status.loading") : s.statusKey === "waiting" ? t("status.waiting_auth")
+    : t("status.ready", { count: s.devices.length, esp: s.devices.filter(d => espCount(d)).length });
+  const priv = s.privileged ? `<span class="priv">${IC.lock}${t("status.privileged")}</span>` : "";
+  return `<div class="statusbar"><span>${left}</span>${priv}<span class="cmd" title="${esc(s.lastCmd)}">${t("status.last_command")}: ${esc(s.lastCmd)}</span></div>`;
+}
+function toast(s) {
+  if (!s.toast) return "";
+  const x = s.toast;
+  return `<div class="toast-layer"><div class="notif ${x.kind === "error" ? "error" : ""}">${x.kind === "error" ? IC.err.replace("<svg", '<svg class="ic"') : IC.ok.replace("<svg", '<svg class="ic"')}
+    <div style="flex:1;min-width:0"><div class="ttl">${esc(x.title)}</div><div class="body">${esc(x.body)}</div>${x.cmd ? `<div class="cmd">$ ${esc(x.cmd)}</div>` : ""}
+    ${x.actions.length ? `<div class="actions">${x.actions.map((a, i) => `<button class="btn ${i === 0 ? "btn-tertiary" : "btn-ghost"}" style="height:28px">${t(a)}</button>`).join("")}</div>` : ""}</div>
+    <button class="btn btn-icon" style="width:24px;height:24px" title="${esc(t("toast.close"))}">✕</button></div></div>`;
+}
+function modal(s, d) {
+  if (s.modal !== "eject") return "";
+  const vols = d.parts.filter(p => p.mounted || p.type === "esp").length;
+  return `<div class="modal-layer"><div class="modal"><div class="hd"><div class="lbl">${t("modal.eject.label")}</div><h4>${esc(t("modal.eject.title", { device: names(d, s).main }))}</h4></div>
+    <div class="bd">${t("modal.eject.body", { count: vols })}</div>
+    <div class="ft"><button class="btn btn-secondary">${t("modal.cancel")}</button><button class="btn btn-primary">${t("modal.eject.confirm")}</button></div></div></div>`;
+}
+function labels(d) {
+  if (d.kind === "image") return [];
+  const out = [];
+  for (const p of d.parts) {
+    if (p.type === "esp") continue;
+    if (p.container) { const vs = p.container.volumes; const v = vs.find(v => v.mounted === "/") || vs.find(v => v.mounted) || vs[0]; if (v) out.push(v.name); continue; }
+    if (p.type === "other" && !p.mounted) continue;
+    out.push(p.name);
+  }
+  return out;
+}
+function names(d, s) {
+  const ls = labels(d);
+  if (s.nameMode !== "label" || !ls.length) return { main: d.name, vendor: null, more: 0 };
+  return { main: ls[0], vendor: d.name, more: ls.length - 1 };
+}
+function detailHead(d, s) {
+  const meta = [["detail.identifier", `<span class="mono">${d.id}</span>`], ["detail.connection", esc(d.protocol)], ["detail.scheme", esc(d.scheme)], ["detail.capacity", `<span class="mono">${size(d.size)}</span>`]];
+  if (d.store) meta.push(["detail.stored_on", `<span class="mono">${t("device.on_store", { store: d.store })}</span>`]);
+  const nm = names(d, s);
+  return `<div class="dhead">${kindIcon(d).replace("<svg", '<svg class="di"')}<div class="grow"><h1 title="${esc(nm.main)}">${esc(nm.main)}${nm.more ? ` <span class="more">${t("device.more_labels", { count: nm.more })}</span>` : ""}</h1>${nm.vendor ? `<div class="vendor">${esc(nm.vendor)}</div>` : ""}
+    <div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap">${tags(d)}</div>
+    <div class="meta">${meta.map(([k, v]) => `<div><span>${t(k)}</span>${v}</div>`).join("")}</div>
+    ${d.image ? `<div class="path" title="${esc(d.image)}">&lrm;${esc(d.image)}</div>` : ""}</div>
+    <button class="btn btn-tertiary">${IC.eject}${t("detail.eject_device")}</button></div>`;
+}
+
+function renderMain(s) {
+  const list = s.loading ? [] : applyFilter(s.devices, s.filter);
+  const total = s.total ?? s.devices.length;
+  const d = s.devices.find(x => x.id === s.sel);
+  const count = s.loading ? "" : (s.filter === "all" ? t("device_list.count", { count: total }) : t("device_list.count_filtered", { shown: list.length, total }));
+  let side = `<div class="sidebar"><div class="sb-head"><div class="sb-title"><span>${t("device_list.title")}</span><span class="muted">${count}</span></div>${switcher(s)}</div><div class="devlist">`;
+  if (s.loading) side += [1, 2, 3, 4].map(() => `<div class="dev"><div class="skeleton" style="width:24px;height:24px"></div><div class="txt"><div class="skeleton" style="height:12px;width:70%"></div><div class="skeleton" style="height:10px;width:45%;margin-top:6px"></div></div></div>`).join("");
+  else if (!list.length) side += `<div class="empty" style="padding:24px"><p>${t("empty.no_match.title")}</p></div>`;
+  else side += list.map(x => `<div class="dev ${x.id === s.sel ? "sel" : ""}" data-dev="${x.id}" title="${esc(x.name)}">${kindIcon(x).replace("<svg", '<svg class="di"')}
+      <div class="txt">${(() => { const nm = names(x, s); return `<div class="dn" title="${esc(nm.main)}">${esc(nm.main)}${nm.more ? ` <span class="more">${t("device.more_labels", { count: nm.more })}</span>` : ""}</div>${nm.vendor ? `<div class="dm" title="${esc(nm.vendor)}">${esc(nm.vendor)}</div>` : ""}`; })()}<div class="dm"><span class="mono">${x.id}</span>${x.store ? " (" + t("device.on_store", { store: x.store }) + ")" : ""} · <span class="mono">${size(x.size)}</span></div>
+      <div class="dt">${tags(x)}</div>
+      <div class="minibar">${x.parts.map(p => `<span style="flex:${Math.max(p.size / x.size, .02)} 1 0;background:var(${p.type === "esp" ? (p.mounted ? "--esp-state-mounted" : "--esp-part-esp") : "--esp-part-" + p.type})"></span>`).join("")}</div></div></div>`).join("");
+  side += `</div></div>`;
+
+  let main = `<div class="main">`;
+  if (s.loading) main += `<div class="skeleton" style="height:40px;width:50%"></div><div class="skeleton" style="height:28px"></div><div class="skeleton" style="height:160px;width:320px"></div>`;
+  else if (!list.length) main += `<div class="empty">${IC.internal}<h4>${t("empty.no_match.title")}</h4><p>${t("empty.no_match.body", { filter: t("filter.all") })}</p><div style="margin-top:16px"><button class="btn btn-tertiary" data-filter="all">${t("filter.all")}</button></div></div>`;
+  else if (!d) main += `<div class="empty">${IC.internal}<h4>${t("empty.select.title")}</h4><p>${t("empty.select.body")}</p></div>`;
+  else {
+    main += detailHead(d, s);
+    main += `<div><h3 class="sect-title">${t("band.title")}</h3>${band(d)}${legend()}</div>`;
+    const esps = d.parts.filter(p => p.type === "esp");
+    main += `<div><h3 class="sect-title">${t("esp.section_title")}</h3>`;
+    main += esps.length ? `<div class="esp-grid">${esps.map(p => espTile(p, s)).join("")}</div>`
+      : `<div class="esp-tile" style="align-items:center;text-align:center"><h4 style="margin:0;font-weight:500">${t("empty.no_esp.title")}</h4><p class="muted" style="margin:0;font-size:13px">${esc(t("empty.no_esp.body", { device: names(d, s).main }))}</p></div>`;
+    main += `</div>` + otherTable(d, s);
+  }
+  main += `</div>`;
+  return `<div class="win">${titlebar()}<div class="body-row">${side}${main}</div>${statusbar(s)}${toast(s)}${modal(s, d)}</div>`;
+}
+
+/* ===== 設定と操作ログ ===== */
+function renderSettings() {
+  const tg = (on) => `<span class="toggle ${on ? "on" : ""}"><span class="track"></span></span>`;
+  return `${titlebar().replace(/<button[\s\S]*<\/button>/, "").replace(t("app.name"), t("settings.title"))}<div class="settings">
+    <div class="grp"><h5>${t("settings.group.general")}</h5>
+      <div class="item"><span>${t("settings.language")}</span><span class="select">${t("settings.language.system")}</span></div>
+      <div class="item"><span>${t("settings.theme")}</span><span class="select">${t("settings.theme.system")}</span></div>
+      <div class="item"><span>${t("settings.default_filter")}</span><span class="select">${t("filter.all")}</span></div></div>
+    <div class="grp"><h5>${t("settings.group.behavior")}</h5>
+      <div class="item"><span>${t("settings.open_finder")}</span>${tg(true)}</div>
+      <div class="item"><span>${t("settings.auto_refresh")}</span>${tg(true)}</div>
+      <div class="item"><span>${t("settings.confirm_eject")}</span>${tg(true)}</div>
+      <div class="item"><span>${t("settings.auto_empty_trash")}</span>${tg(false)}</div>
+      <div class="item"><span>${t("settings.show_command")}</span>${tg(true)}</div></div>
+    <div class="grp"><h5>${t("settings.group.about")}</h5>
+      <div class="item"><span>${t("app.name")}</span><span class="mono muted">${t("settings.version", { version: "0.1.0" })}</span></div>
+      <div class="item"><span>${t("settings.repository")}</span><a class="mono" style="color:var(--cds-link-primary);font-size:12px">github.com/rinfromniigata/esp_latch</a></div></div></div>`;
+}
+function renderLog(empty) {
+  const rows = [
+    [time(5, 31, 2), "diskutil list -plist", "ok"],
+    [time(5, 31, 40), "osascript … do shell script \"…/esp-latch-helper\" with administrator privileges", "cancelled"],
+    [time(5, 32, 5), "diskutil mount disk4s1", "fail"],
+    [time(5, 33, 12), "diskutil mount disk2s1", "ok"],
+    [time(5, 33, 13), "open /Volumes/EFI", "ok"],
+    [time(5, 35, 47), "rm -rf /Volumes/EFI/.Trashes", "ok"],
+    [time(5, 35, 48), "diskutil unmount disk2s1", "ok"]
+  ];
+  const cls = { ok: "res-ok", fail: "res-fail", cancelled: "res-cancel" };
+  const head = titlebar().replace(/<button[\s\S]*<\/button>/, "").replace(t("app.name"), t("log.title"));
+  if (empty) return `${head}<div class="log"><div class="empty" style="padding:48px">${IC.log}<h4>${t("log.empty.title")}</h4><p>${t("log.empty.body")}</p></div></div>`;
+  return `${head}<div class="log"><div class="lh"><span class="muted" style="font-size:12px"></span><div style="display:flex;gap:8px"><button class="btn btn-ghost">${t("log.copy")}</button><button class="btn btn-ghost">${t("log.clear")}</button></div></div>
+    <table class="table"><thead><tr><th>${t("log.col.time")}</th><th>${t("log.col.command")}</th><th>${t("log.col.result")}</th></tr></thead><tbody>
+    ${rows.map(r => `<tr><td class="mono" style="white-space:nowrap">${r[0]}</td><td class="cmd">${esc(r[1])}</td><td class="${cls[r[2]]}" style="white-space:nowrap">${t({ ok: "log.result.ok", fail: "log.result.fail", cancelled: "log.result.cancelled" }[r[2]])}</td></tr>`).join("")}</tbody></table></div>`;
+}
+function renderParts() {
+  const kinds = [["btn-primary", "esp.mount", IC.mount], ["btn-secondary", "esp.unmount", IC.eject], ["btn-tertiary", "detail.eject_device", IC.eject], ["btn-ghost", "esp.open_finder", IC.folder]];
+  let h = `<span></span><span class="h">通常</span><span class="h">ホバー</span><span class="h">フォーカス</span><span class="h">無効</span>`;
+  for (const [c, k, ic] of kinds) {
+    h += `<span class="h mono">${c}</span>` + ["", "is-hover", "is-focus", "is-disabled"].map(m => `<span><button class="btn ${c} ${m}">${ic}${t(k)}</button></span>`).join("");
+  }
+  return h;
+}
+
+/* ===== 全体の再描画 ===== */
+const live = new WeakMap();
+function renderAll() {
+  document.querySelectorAll("[data-render]").forEach(el => {
+    const st = live.get(el) || stateData(el.dataset.state);
+    if (!live.has(el)) live.set(el, st);
+    el.innerHTML = renderMain(st);
+  });
+  const put = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html(); };
+  put("settings-win", renderSettings);
+  put("log-win", () => renderLog(false));
+  put("log-win-empty", () => renderLog(true));
+  put("parts", renderParts);
+}
+document.addEventListener("click", e => {
+  const host = e.target.closest("[data-render]");
+  if (host) {
+    const st = live.get(host);
+    const dv = e.target.closest("[data-dev]");
+    const fl = e.target.closest("[data-filter]");
+    if (dv && st) { st.sel = dv.dataset.dev; renderAll(); }
+    if (fl && st) { st.filter = fl.dataset.filter; renderAll(); }
+    const tg = e.target.closest("[data-toggle]");
+    if (tg && st) { const id = tg.dataset.toggle; st.expanded.has(id) ? st.expanded.delete(id) : st.expanded.add(id); renderAll(); }
+  }
+  const lb = e.target.closest("[data-lang]");
+  if (lb) {
+    LANG = lb.dataset.lang; document.documentElement.lang = LANG;
+    document.querySelectorAll("[data-lang]").forEach(b => b.setAttribute("aria-pressed", b === lb));
+    document.querySelectorAll("[data-render]").forEach(el => live.delete(el));
+    renderAll();
+  }
+  const tb = e.target.closest("[data-theme-set]");
+  if (tb) {
+    document.documentElement.dataset.theme = tb.dataset.themeSet;
+    document.querySelectorAll("[data-theme-set]").forEach(b => b.setAttribute("aria-pressed", b === tb));
+  }
+});
+renderAll();
+</script>
+</body>
+</html>
