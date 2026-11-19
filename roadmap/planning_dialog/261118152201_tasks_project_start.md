@@ -146,7 +146,7 @@ Phaseの推奨: Opus・high以上
 
 ## Phase 6: 取り出しとESPのゴミ箱
 Phaseの推奨: Sonnet・high以上
-引き継ぎ: T6-1・T6-2完了。次はW6-1（checkコマンド）→W6-2（モックとの構造の照合）。設定の`auto_empty_trash_on_unmount`は、本体のTauriコマンド側で適用する（`unmount_esp`のとき`empty_trash || 設定`）。ゴミ箱を空にしたあとの詳細の更新は、本体が一覧を取得し直す`devices-changed`でUIが読み直す。取り出し・ゴミ箱の操作の画面と実機は未確認。
+引き継ぎ: T6-1・T6-2、W6-1・W6-2完了（checkと構造の照合は通過、修正なし）。次はユーザーの確認W6-3〜W6-5。設定の`auto_empty_trash_on_unmount`は、本体のTauriコマンド側で適用する（`unmount_esp`のとき`empty_trash || 設定`）。ゴミ箱を空にしたあとの詳細の更新は、本体が一覧を取得し直す`devices-changed`でUIが読み直す。取り出し・ゴミ箱の操作の画面と実機はW6-3〜W6-5で確認する。
 - [x] T6-1 【エージェント】ユースケース：`eject_device`、`empty_esp_trash`（解放量）、ゴミ箱を空にして取り外す、取り外し時の自動削除（`auto_empty_trash_on_unmount`）。偽実装で単体テスト
   - 依存: T5-6
   - 実施: Sonnet・high
