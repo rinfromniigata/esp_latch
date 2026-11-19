@@ -3,5 +3,10 @@
 		"file": "*",
 		"value": "1px",
 		"reason": "区切り線・枠線の太さ。Carbonにも線の太さのトークンはなく、部品は1pxを使う"
+	},
+	{
+		"file": "src/lib/components/EspTile.svelte",
+		"value": "3px",
+		"reason": "ゴミ箱の警告の左線の太さ。モックの警告枠（inline-warn）の値で、Carbonに対応するトークンがない"
 	}
 ]

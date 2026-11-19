@@ -1,5 +1,5 @@
 // デバイス・パーティションの見方（UIの表示のための判定）。Rustのドメインモデルを読むだけで、変えない
-import type { Device, DefaultFilter, DeviceSnapshot, Partition } from '#lib/api/types.js';
+import type { Device, DefaultFilter, DeviceSnapshot, EspUsage, Partition } from '#lib/api/types.js';
 
 export function isEsp(partition: Partition): boolean {
 	return partition.kind === 'esp';
@@ -63,4 +63,26 @@ export function partitionColorVar(partition: Partition): string {
 /** 区画の幅の比率。小さな区画も見えるよう、下限を設ける（帯の最小幅） */
 export function partitionWeight(partition: Partition, device: Pick<Device, 'size'>, floor: number): number {
 	return Math.max(device.size > 0 ? partition.size / device.size : 0, floor);
+}
+
+/** 空きが少ないと強調する境目（全体に対する空きの割合。スペック1章） */
+export const LOW_FREE_RATIO = 0.15;
+
+/** ESPの空きが15%を切っているか。容量か空きが読めないときは、強調しない */
+export function isLowFreeSpace(usage: Pick<EspUsage, 'total' | 'free'>): boolean {
+	if (usage.total === null || usage.free === null || usage.total <= 0) return false;
+	return usage.free / usage.total < LOW_FREE_RATIO;
+}
+
+/** ゴミ箱にファイルが残っているか（量が読めないときは、残っているとは言わない） */
+export function hasTrash(usage: Pick<EspUsage, 'trash'>): boolean {
+	return usage.trash !== null && usage.trash > 0;
+}
+
+/** デバイスを取り出すと取り外されるボリュームの数（確認の文言）。マウント中のボリュームとESP。APFSはコンテナのボリュームを数える */
+export function ejectVolumeCount(device: Device): number {
+	return device.partitions.reduce((count, partition) => {
+		if (partition.apfs) return count + partition.apfs.volumes.filter((volume) => volume.mount_point !== null).length;
+		return count + (isEsp(partition) || partition.mount_point !== null ? 1 : 0);
+	}, 0);
 }

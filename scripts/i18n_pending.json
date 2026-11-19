@@ -1,15 +1,4 @@
 {
 	"description": "画面がまだなく、使っていないキー。画面を実装して使い始めたら、ここから外す（checkコマンドが確かめる）",
-	"keys": [
-		"esp.trash_warning",
-		"esp.empty_trash",
-		"esp.empty_trash_unmount",
-		"toast.trash_emptied.title",
-		"toast.trash_emptied.body",
-		"modal.eject.label",
-		"modal.eject.title",
-		"modal.eject.body",
-		"modal.eject.confirm",
-		"modal.cancel"
-	]
+	"keys": []
 }

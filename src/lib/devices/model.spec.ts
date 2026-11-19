@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import type { Device, Partition } from '#lib/api/types.js';
-import { displayNames, espCount, filterDevices, isBootEsp, mountedEspCount, otherPartitions } from './model';
+import {
+	displayNames,
+	ejectVolumeCount,
+	espCount,
+	filterDevices,
+	hasTrash,
+	isBootEsp,
+	isLowFreeSpace,
+	mountedEspCount,
+	otherPartitions
+} from './model';
 
 function partition(patch: Partial<Partition>): Partition {
 	return {
@@ -86,5 +96,52 @@ describe('表示名', () => {
 	});
 	it('ラベルもベンダー名もなければ識別子', () => {
 		expect(displayNames(device({}))).toEqual({ main: 'disk2', vendor: null, more: 0 });
+	});
+});
+
+describe('isLowFreeSpace', () => {
+	it('空きが全体の15%を切ったときだけ強調する（ちょうど15%は強調しない）', () => {
+		expect(isLowFreeSpace({ total: 200, free: 29 })).toBe(true);
+		expect(isLowFreeSpace({ total: 200, free: 30 })).toBe(false);
+		expect(isLowFreeSpace({ total: 200, free: 160 })).toBe(false);
+		expect(isLowFreeSpace({ total: 200, free: 0 })).toBe(true);
+	});
+
+	it('読めない値があるとき・容量が0のときは強調しない', () => {
+		expect(isLowFreeSpace({ total: null, free: 1 })).toBe(false);
+		expect(isLowFreeSpace({ total: 200, free: null })).toBe(false);
+		expect(isLowFreeSpace({ total: 0, free: 0 })).toBe(false);
+	});
+});
+
+describe('hasTrash', () => {
+	it('ゴミ箱に1バイトでも残っていれば真。空・読めないときは偽', () => {
+		expect(hasTrash({ trash: 1 })).toBe(true);
+		expect(hasTrash({ trash: 0 })).toBe(false);
+		expect(hasTrash({ trash: null })).toBe(false);
+	});
+});
+
+describe('ejectVolumeCount', () => {
+	it('マウント中のボリュームとESPを数え、APFSはコンテナの中のマウント中のボリュームを数える', () => {
+		const target = device({
+			partitions: [
+				partition({ id: 'disk2s1', kind: 'esp', mount_point: null }),
+				partition({
+					id: 'disk2s2',
+					kind: 'apfs',
+					apfs: {
+						id: 'disk3',
+						volumes: [
+							{ id: 'disk3s1', name: 'A', mount_point: '/Volumes/A', used: null },
+							{ id: 'disk3s2', name: 'B', mount_point: null, used: null }
+						]
+					}
+				}),
+				partition({ id: 'disk2s3', kind: 'hfs', mount_point: '/Volumes/H' }),
+				partition({ id: 'disk2s4', kind: 'other', mount_point: null })
+			]
+		});
+		expect(ejectVolumeCount(target)).toBe(3);
 	});
 });

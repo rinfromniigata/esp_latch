@@ -75,6 +75,8 @@ pub fn run() {
             commands::app::open_repository,
             commands::devices::list_devices,
             commands::devices::refresh,
+            commands::esp::eject_device,
+            commands::esp::empty_esp_trash,
             commands::esp::inspect_esp,
             commands::esp::mount_esp,
             commands::esp::open_esp,

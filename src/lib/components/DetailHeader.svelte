@@ -5,6 +5,8 @@
 	import { displayNames } from '#lib/devices/model.js';
 	import { schemeLabel } from '#lib/devices/labels.js';
 	import { formatBytes } from '#lib/format/index.js';
+	import { deviceStore, espStore, settingsStore } from '#lib/stores/index.js';
+	import EjectDialog from './EjectDialog.svelte';
 	import DeviceTags from './DeviceTags.svelte';
 	import Icon from './Icon.svelte';
 	import * as icons from './icons';
@@ -16,6 +18,27 @@
 		device.kind === 'internal' ? icons.internalDisk : device.kind === 'external' ? icons.externalDisk : icons.diskImage
 	);
 	const scheme = $derived(schemeLabel(device.scheme));
+
+	/** このデバイスか、その区画への操作を実行中（取り出しは同じディスクの操作が終わるまで待つ） */
+	const busy = $derived(deviceStore.isBusy(device.id) || device.partitions.some((part) => deviceStore.isBusy(part.id)));
+	let confirming = $state(false);
+
+	// 選んだデバイスが変わったら（切断を含む）、確認を閉じる
+	$effect(() => {
+		void device.id;
+		confirming = false;
+	});
+
+	/** 設定の`confirm_eject`がオンなら確認してから、オフならすぐに取り出す */
+	function requestEject(): void {
+		if (settingsStore.settings.confirm_eject) confirming = true;
+		else void espStore.eject(device.id);
+	}
+
+	function confirmEject(): void {
+		confirming = false;
+		void espStore.eject(device.id);
+	}
 </script>
 
 <div class="head">
@@ -44,12 +67,12 @@
 			<div class="path" title={device.image.path}>&lrm;{device.image.path}</div>
 		{/if}
 	</div>
-	<!-- 取り出しの操作はPhase 6（T6-1）で接続する。それまでは押せない -->
-	<cds-button kind="tertiary" size="md" disabled>
+	<cds-button kind="tertiary" size="md" disabled={busy} onclick={requestEject}>
 		<Icon icon={icons.eject} />
 		{m['detail.eject_device']()}
 	</cds-button>
 </div>
+<EjectDialog {device} open={confirming} onconfirm={confirmEject} onclose={() => (confirming = false)} />
 
 <style>
 	.head {

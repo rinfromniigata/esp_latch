@@ -1,4 +1,4 @@
-//! ESPのユースケース（imple 4章）：`inspect_esp`・`mount_esp`・`unmount_esp`・`open_esp`。
+//! ESPのユースケース（imple 4章）：`inspect_esp`・`mount_esp`・`unmount_esp`・`open_esp`・`empty_esp_trash`・`eject_device`。
 //!
 //! 権限が要る操作は`PrivilegedOps`に依頼し、補助プロセスが実行したコマンド（初回は起動の`osascript`も）を操作ログに記録する。
 //! 同じディスクへの操作は同時に1つだけ（`begin_operation`）。マウント・取り外しのあとは一覧を取得し直す。
@@ -44,16 +44,54 @@ impl AppCore {
         Ok(detail)
     }
 
-    /// マウント中のESPを取り外す
-    pub fn unmount_esp(&self, part: &str) -> Result<(), AppError> {
+    /// マウント中のESPを取り外す。`empty_trash`なら、取り外す前にそのESPのゴミ箱を空にする
+    /// （「ゴミ箱を空にして取り外す」、設定の`auto_empty_trash_on_unmount`）。空にするのに失敗したら、取り外さずに断る
+    pub fn unmount_esp(&self, part: &str, empty_trash: bool) -> Result<(), AppError> {
         check_partition(part)?;
         let _operation = self.begin_operation(part, Operation::UnmountEsp)?;
+        let result = self.empty_then_unmount(part, empty_trash);
+        // 失敗しても状態が変わっていることがあるため、取得し直す
+        let _ = self.refresh();
+        result
+    }
+
+    fn empty_then_unmount(&self, part: &str, empty_trash: bool) -> Result<(), AppError> {
+        if empty_trash {
+            self.run_privileged(Op::EmptyTrash {
+                part: part.to_owned(),
+            })?;
+        }
+        self.run_privileged(Op::UnmountEsp {
+            part: part.to_owned(),
+        })
+        .map(drop)
+    }
+
+    /// マウント中のESPのゴミ箱（マウント先直下の`.Trashes`）を空にし、解放したバイト数を返す
+    pub fn empty_esp_trash(&self, part: &str) -> Result<u64, AppError> {
+        check_partition(part)?;
+        let _operation = self.begin_operation(part, Operation::EmptyEspTrash)?;
         let result = self
-            .run_privileged(Op::UnmountEsp {
+            .run_privileged(Op::EmptyTrash {
                 part: part.to_owned(),
             })
+            .map(|response| response.freed_bytes.unwrap_or(0));
+        // 空き容量とゴミ箱の量を読み直させるため、成否にかかわらず取得し直す
+        let _ = self.refresh();
+        result
+    }
+
+    /// デバイスごと取り出す（マウント中のボリュームもすべて取り外される）
+    pub fn eject_device(&self, disk: &str) -> Result<(), AppError> {
+        if !bsd::is_disk(disk) {
+            return Err(AppError::InvalidTarget);
+        }
+        let _operation = self.begin_operation(disk, Operation::EjectDevice)?;
+        let result = self
+            .run_privileged(Op::EjectDisk {
+                disk: disk.to_owned(),
+            })
             .map(drop);
-        // 失敗しても状態が変わっていることがあるため、取得し直す
         let _ = self.refresh();
         result
     }

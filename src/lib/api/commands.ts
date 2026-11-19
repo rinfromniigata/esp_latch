@@ -34,9 +34,19 @@ export function mountEsp(part: string): Promise<EspDetail> {
 	return invoke<EspDetail>('mount_esp', { part });
 }
 
-/** マウント中のESPを取り外す */
-export function unmountEsp(part: string): Promise<void> {
-	return invoke('unmount_esp', { part });
+/** マウント中のESPを取り外す。emptyTrashなら、先にそのESPのゴミ箱を空にする（設定でオンなら、falseでも空にする） */
+export function unmountEsp(part: string, emptyTrash = false): Promise<void> {
+	return invoke('unmount_esp', { part, emptyTrash });
+}
+
+/** マウント中のESPのゴミ箱を空にする。解放したバイト数を返す */
+export function emptyEspTrash(part: string): Promise<number> {
+	return invoke<number>('empty_esp_trash', { part });
+}
+
+/** デバイスごと取り出す（マウント中のボリュームもすべて取り外される） */
+export function ejectDevice(disk: string): Promise<void> {
+	return invoke('eject_device', { disk });
 }
 
 /** マウント中のESPをFinderで開く */

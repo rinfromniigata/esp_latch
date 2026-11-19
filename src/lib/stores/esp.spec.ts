@@ -6,6 +6,8 @@ const api = vi.hoisted(() => ({
 	inspectEsp: vi.fn(),
 	mountEsp: vi.fn(),
 	unmountEsp: vi.fn(),
+	emptyEspTrash: vi.fn(),
+	ejectDevice: vi.fn(),
 	openEsp: vi.fn()
 }));
 const windows = vi.hoisted(() => ({ openAppWindow: vi.fn() }));
@@ -124,6 +126,86 @@ describe('espStore', () => {
 		api.unmountEsp.mockRejectedValueOnce({ kind: 'busy' });
 		await espStore.unmount('disk4s1');
 		expect(toastStore.items[0]?.actions).toEqual([]);
+	});
+
+	it('「ゴミ箱を空にして取り外す」は、ゴミ箱を空にする指定つきで取り外す。失敗したら詳細を残して通知し、再試行できる', async () => {
+		const { espStore, toastStore } = await load();
+		api.mountEsp.mockResolvedValue(detail('disk4s1'));
+		await espStore.mount('disk4s1');
+		toastStore.clear();
+
+		api.unmountEsp.mockRejectedValueOnce({ kind: 'io', message: 'Read-only file system' });
+		await espStore.unmount('disk4s1', true);
+		expect(api.unmountEsp).toHaveBeenLastCalledWith('disk4s1', true);
+		expect(espStore.detail('disk4s1')).toBeDefined();
+		expect(toastStore.items[0]?.kind).toBe('error');
+
+		api.unmountEsp.mockResolvedValueOnce(undefined);
+		toastStore.items[0]?.onAction?.('retry');
+		await vi.waitFor(() => expect(api.unmountEsp).toHaveBeenCalledTimes(2));
+		expect(api.unmountEsp).toHaveBeenLastCalledWith('disk4s1', true);
+		await vi.waitFor(() => expect(espStore.detail('disk4s1')).toBeUndefined());
+	});
+
+	it('ふつうの取り外しは、ゴミ箱を空にする指定をしない（設定の自動削除は本体が見る）', async () => {
+		const { espStore } = await load();
+		api.unmountEsp.mockResolvedValue(undefined);
+		await espStore.unmount('disk4s1');
+		expect(api.unmountEsp).toHaveBeenCalledWith('disk4s1', false);
+	});
+
+	it('ゴミ箱を空にしたら、解放した容量を数秒で消える成功の通知で知らせる', async () => {
+		vi.useFakeTimers();
+		const { espStore, toastStore } = await load();
+		api.emptyEspTrash.mockResolvedValue(158_564_352);
+		await espStore.emptyTrash('disk4s1');
+		const toast = toastStore.items[0];
+		expect(toast?.kind).toBe('ok');
+		expect(toast?.body).toContain('disk4s1');
+		expect(toast?.body).toContain('159');
+		vi.advanceTimersByTime(5000);
+		expect(toastStore.items).toHaveLength(0);
+	});
+
+	it('ゴミ箱を空にできなければ通知し、コマンドの失敗はログを開ける', async () => {
+		const { espStore, toastStore } = await load();
+		api.emptyEspTrash.mockRejectedValue({
+			kind: 'command_failed',
+			command: 'rm -rf /Volumes/EFI/.Trashes',
+			stderr: 'Operation not permitted'
+		});
+		await espStore.emptyTrash('disk4s1');
+		expect(toastStore.items[0]?.kind).toBe('error');
+		expect(toastStore.items[0]?.stderr).toBe('Operation not permitted');
+		expect(toastStore.items[0]?.actions).toEqual(['retry', 'show_log']);
+	});
+
+	it('取り出したら、そのデバイスのESPの詳細を消す（ほかのデバイスのものは残す）', async () => {
+		const { espStore, toastStore } = await load();
+		api.inspectEsp.mockImplementation(async (part: string) => detail(part));
+		await espStore.sync([esp('disk4s1', '/Volumes/EFI'), esp('disk40s1', '/Volumes/EFI 1')]);
+		api.ejectDevice.mockResolvedValue(undefined);
+		await espStore.eject('disk4');
+		expect(api.ejectDevice).toHaveBeenCalledWith('disk4');
+		expect(espStore.detail('disk4s1')).toBeUndefined();
+		expect(espStore.detail('disk40s1')).toBeDefined();
+		expect(toastStore.items).toHaveLength(0);
+	});
+
+	it('取り出せなければ、diskutilのエラーを通知して再試行できる', async () => {
+		const { espStore, toastStore } = await load();
+		api.ejectDevice.mockRejectedValueOnce({
+			kind: 'command_failed',
+			command: 'diskutil eject disk4',
+			stderr: 'Volume disk4s2 failed to unmount'
+		});
+		await espStore.eject('disk4');
+		const toast = toastStore.items[0];
+		expect(toast?.command).toBe('diskutil eject disk4');
+		api.ejectDevice.mockResolvedValueOnce(undefined);
+		toast?.onAction?.('retry');
+		await vi.waitFor(() => expect(api.ejectDevice).toHaveBeenCalledTimes(2));
+		expect(toastStore.items).toHaveLength(0);
 	});
 
 	it('Finderで開けなければ通知する', async () => {

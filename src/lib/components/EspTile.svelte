@@ -1,11 +1,12 @@
 <script lang="ts">
 	// ESPのタイル：識別子・名前、「起動に使用」の印、状態（未マウント・マウント中）、容量・形式・マウント先・ブートローダー・
 	// 空き容量（マウント中は容量バーとゴミ箱の量）、操作のボタン（マウント・取り外し・Finderで開く、処理中）。
-	// 状態は色だけでなく文字でも示す。ゴミ箱の警告・空きが少ないときの強調・ゴミ箱の操作はPhase 6（S01k）
+	// 状態は色だけでなく文字でも示す。ゴミ箱に残りがあれば、警告と「ゴミ箱を空にして取り外す」を主な操作にする（S01k）
 	import { m } from '#lib/i18n/index.js';
 	import type { Partition } from '#lib/api/types.js';
 	import { formatBytes } from '#lib/format/index.js';
 	import { EMPTY_VALUE, loaderLabel } from '#lib/devices/labels.js';
+	import { hasTrash } from '#lib/devices/model.js';
 	import { deviceStore, espStore } from '#lib/stores/index.js';
 	import EspUsageBar from './EspUsageBar.svelte';
 	import Icon from './Icon.svelte';
@@ -27,6 +28,8 @@
 	const loader = $derived(
 		detail === undefined ? EMPTY_VALUE : detail.loader ? loaderLabel(detail.loader) : m['esp.loader_none']()
 	);
+	/** ゴミ箱にファイルが残っているマウント中のESP */
+	const trashed = $derived(detail !== undefined && hasTrash(detail.usage));
 </script>
 
 <article class="tile" class:mounted>
@@ -85,10 +88,29 @@
 			</dd>
 		{/if}
 	</dl>
+	{#if trashed && detail && detail.usage.trash !== null}
+		<div class="warn" role="status">
+			<Icon icon={icons.warning} size="1rem" />
+			<span>{m['esp.trash_warning']({ size: formatBytes(detail.usage.trash) })}</span>
+		</div>
+	{/if}
 	<div class="actions">
 		{#if busy}
 			<cds-button kind="primary" size="md" disabled>
 				<cds-inline-loading class="working" status="active">{m['esp.working']()}</cds-inline-loading>
+			</cds-button>
+		{:else if mounted && trashed}
+			<cds-button kind="secondary" size="md" onclick={() => espStore.unmount(partition.id, true)}>
+				<Icon icon={icons.eject} />
+				{m['esp.empty_trash_unmount']()}
+			</cds-button>
+			<cds-button kind="ghost" size="md" onclick={() => espStore.emptyTrash(partition.id)}>
+				<Icon icon={icons.trash} />
+				{m['esp.empty_trash']()}
+			</cds-button>
+			<cds-button kind="ghost" size="md" onclick={() => espStore.open(partition.id)}>
+				<Icon icon={icons.folder} />
+				{m['esp.open_finder']()}
 			</cds-button>
 		{:else if mounted}
 			<cds-button kind="secondary" size="md" onclick={() => espStore.unmount(partition.id)}>
@@ -183,6 +205,22 @@
 	.muted {
 		color: var(--cds-text-secondary);
 		font-family: var(--esp-font-sans);
+	}
+
+	/* ゴミ箱の警告：警告の色の左線（モックのinline-warn） */
+	.warn {
+		display: flex;
+		align-items: flex-start;
+		gap: var(--cds-spacing-03);
+		padding: var(--cds-spacing-03) var(--cds-spacing-04);
+		font-size: var(--cds-label-01-font-size);
+		background-color: var(--cds-layer-02);
+		border-left: 3px solid var(--cds-support-warning);
+	}
+
+	.warn :global(svg) {
+		flex: none;
+		fill: var(--cds-support-warning);
 	}
 
 	.actions {

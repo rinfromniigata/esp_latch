@@ -223,7 +223,7 @@ fn helper_refusals_map_to_app_errors() {
         let s = setup(vec![]);
         s.privileged
             .push_response(Response::failure(1, vec![], helper));
-        assert_eq!(s.core.unmount_esp("disk4s1"), Err(app));
+        assert_eq!(s.core.unmount_esp("disk4s1", false), Err(app));
     }
 }
 
@@ -236,7 +236,10 @@ fn invalid_or_busy_targets_are_refused_before_the_helper() {
             Err(AppError::InvalidTarget),
             "{part}"
         );
-        assert_eq!(s.core.unmount_esp(part), Err(AppError::InvalidTarget));
+        assert_eq!(
+            s.core.unmount_esp(part, false),
+            Err(AppError::InvalidTarget)
+        );
         assert_eq!(s.core.open_esp(part), Err(AppError::InvalidTarget));
         assert_eq!(s.core.inspect_esp(part), Err(AppError::InvalidTarget));
     }
@@ -245,7 +248,7 @@ fn invalid_or_busy_targets_are_refused_before_the_helper() {
         .begin_operation("disk4", Operation::EjectDevice)
         .unwrap();
     assert_eq!(s.core.mount_esp("disk4s1", true), Err(AppError::Busy));
-    assert_eq!(s.core.unmount_esp("disk4s2"), Err(AppError::Busy));
+    assert_eq!(s.core.unmount_esp("disk4s2", false), Err(AppError::Busy));
     assert!(s.privileged.received().is_empty());
 }
 
@@ -256,7 +259,7 @@ fn unmount_logs_and_refreshes_even_on_failure() {
         1,
         vec![record("diskutil unmount disk4s1", 0, "")],
     ));
-    s.core.unmount_esp("disk4s1").unwrap();
+    s.core.unmount_esp("disk4s1", false).unwrap();
     s.privileged.push_response(Response::failure(
         2,
         vec![record("diskutil unmount disk4s1", 1, "Resource busy")],
@@ -266,7 +269,7 @@ fn unmount_logs_and_refreshes_even_on_failure() {
         },
     ));
     assert!(matches!(
-        s.core.unmount_esp("disk4s1"),
+        s.core.unmount_esp("disk4s1", false),
         Err(AppError::CommandFailed { .. })
     ));
     assert_eq!(
@@ -342,4 +345,260 @@ fn opencore_version_from_nvram_only_for_the_boot_esp() {
     assert_eq!(other.usage.free, Some(160_000_000));
     // 読むだけの操作は、操作ログに残さない
     assert!(log_lines(&s.core).is_empty());
+}
+
+fn trash_record(mount_point: &str) -> CommandRecord {
+    record(&format!("rm -rf {mount_point}/.Trashes"), 0, "")
+}
+
+fn emptied(id: u64, freed: u64) -> Response {
+    Response {
+        freed_bytes: Some(freed),
+        ..Response::success(id, vec![trash_record("/Volumes/EFI")])
+    }
+}
+
+#[test]
+fn empty_trash_returns_the_freed_bytes_and_refreshes() {
+    let s = setup(vec![]);
+    s.privileged.push_response(emptied(1, 158_564_352));
+    assert_eq!(s.core.empty_esp_trash("disk4s1"), Ok(158_564_352));
+    assert_eq!(
+        s.privileged.received(),
+        [Op::EmptyTrash {
+            part: "disk4s1".into()
+        }]
+    );
+    assert_eq!(
+        log_lines(&s.core),
+        [
+            ("rm -rf /Volumes/EFI/.Trashes".to_owned(), LogResult::Ok),
+            ("diskutil list -plist".to_owned(), LogResult::Ok),
+        ]
+    );
+    assert!(s.sink.names().contains(&"devices-changed"));
+    assert_eq!(
+        busy_events(&s.sink),
+        [
+            ("disk4s1".into(), Operation::EmptyEspTrash, true),
+            ("disk4s1".into(), Operation::EmptyEspTrash, false)
+        ]
+    );
+}
+
+#[test]
+fn empty_trash_without_a_reported_size_frees_zero() {
+    let s = setup(vec![]);
+    s.privileged
+        .push_response(Response::success(1, vec![trash_record("/Volumes/EFI")]));
+    assert_eq!(s.core.empty_esp_trash("disk4s1"), Ok(0));
+}
+
+#[test]
+fn empty_trash_failures_are_returned_and_logged() {
+    let s = setup(vec![]);
+    s.privileged.push_response(Response::failure(
+        1,
+        vec![record(
+            "rm -rf /Volumes/EFI/.Trashes",
+            1,
+            "Operation not permitted",
+        )],
+        HelperError::Io {
+            message: "Operation not permitted".into(),
+        },
+    ));
+    assert_eq!(
+        s.core.empty_esp_trash("disk4s1"),
+        Err(AppError::Io {
+            message: "Operation not permitted".into()
+        })
+    );
+    assert_eq!(log_lines(&s.core)[0].1, LogResult::Fail);
+    s.privileged
+        .push_response(Response::failure(2, vec![], HelperError::NotMounted));
+    assert_eq!(s.core.empty_esp_trash("disk4s1"), Err(AppError::NotMounted));
+}
+
+#[test]
+fn empty_trash_validates_and_locks_the_target() {
+    let s = setup(vec![]);
+    for part in ["disk4", "../disk4s1", "disk4s1 ", ""] {
+        assert_eq!(s.core.empty_esp_trash(part), Err(AppError::InvalidTarget));
+    }
+    let _mounting = s
+        .core
+        .begin_operation("disk4s1", Operation::MountEsp)
+        .unwrap();
+    assert_eq!(s.core.empty_esp_trash("disk4s1"), Err(AppError::Busy));
+    assert!(s.privileged.received().is_empty());
+}
+
+#[test]
+fn unmount_with_empty_trash_empties_first_then_unmounts() {
+    let s = setup(vec![]);
+    s.privileged.push(Ok(PrivilegedReply {
+        launch: Some(launch(LogResult::Ok)),
+        response: emptied(1, 1000),
+    }));
+    s.privileged.push_response(Response::success(
+        2,
+        vec![record("diskutil unmount disk4s1", 0, "")],
+    ));
+    s.core.unmount_esp("disk4s1", true).unwrap();
+    assert_eq!(
+        s.privileged.received(),
+        [
+            Op::EmptyTrash {
+                part: "disk4s1".into()
+            },
+            Op::UnmountEsp {
+                part: "disk4s1".into()
+            }
+        ]
+    );
+    assert_eq!(
+        log_lines(&s.core),
+        [
+            ("osascript -e 'do shell script …'".to_owned(), LogResult::Ok),
+            ("rm -rf /Volumes/EFI/.Trashes".to_owned(), LogResult::Ok),
+            ("diskutil unmount disk4s1".to_owned(), LogResult::Ok),
+            ("diskutil list -plist".to_owned(), LogResult::Ok),
+        ]
+    );
+    // 取り外しは1つの操作として、処理中の通知は1回だけ
+    assert_eq!(
+        busy_events(&s.sink),
+        [
+            ("disk4s1".into(), Operation::UnmountEsp, true),
+            ("disk4s1".into(), Operation::UnmountEsp, false)
+        ]
+    );
+}
+
+#[test]
+fn unmount_without_empty_trash_does_not_touch_the_trash() {
+    let s = setup(vec![]);
+    s.privileged.push_response(Response::success(
+        1,
+        vec![record("diskutil unmount disk4s1", 0, "")],
+    ));
+    s.core.unmount_esp("disk4s1", false).unwrap();
+    assert_eq!(
+        s.privileged.received(),
+        [Op::UnmountEsp {
+            part: "disk4s1".into()
+        }]
+    );
+}
+
+#[test]
+fn unmount_is_skipped_when_emptying_the_trash_fails() {
+    let s = setup(vec![]);
+    s.privileged.push_response(Response::failure(
+        1,
+        vec![record(
+            "rm -rf /Volumes/EFI/.Trashes",
+            1,
+            "Read-only file system",
+        )],
+        HelperError::Io {
+            message: "Read-only file system".into(),
+        },
+    ));
+    assert_eq!(
+        s.core.unmount_esp("disk4s1", true),
+        Err(AppError::Io {
+            message: "Read-only file system".into()
+        })
+    );
+    assert_eq!(
+        s.privileged.received(),
+        [Op::EmptyTrash {
+            part: "disk4s1".into()
+        }],
+        "the ESP stays mounted so that the user can retry"
+    );
+    assert!(s.sink.names().contains(&"devices-changed"));
+}
+
+#[test]
+fn eject_logs_every_command_and_refreshes() {
+    let s = setup(vec![]);
+    s.privileged.push(Ok(PrivilegedReply {
+        launch: Some(launch(LogResult::Ok)),
+        response: Response::success(1, vec![record("diskutil eject disk4", 0, "")]),
+    }));
+    s.core.eject_device("disk4").unwrap();
+    assert_eq!(
+        s.privileged.received(),
+        [Op::EjectDisk {
+            disk: "disk4".into()
+        }]
+    );
+    assert_eq!(
+        log_lines(&s.core),
+        [
+            ("osascript -e 'do shell script …'".to_owned(), LogResult::Ok),
+            ("diskutil eject disk4".to_owned(), LogResult::Ok),
+            ("diskutil list -plist".to_owned(), LogResult::Ok),
+        ]
+    );
+    assert_eq!(
+        busy_events(&s.sink),
+        [
+            ("disk4".into(), Operation::EjectDevice, true),
+            ("disk4".into(), Operation::EjectDevice, false)
+        ]
+    );
+}
+
+#[test]
+fn eject_failure_returns_the_diskutil_error() {
+    let s = setup(vec![]);
+    s.privileged.push_response(Response::failure(
+        1,
+        vec![record(
+            "diskutil eject disk4",
+            1,
+            "Volume disk4s2 failed to unmount",
+        )],
+        HelperError::CommandFailed {
+            command: "diskutil eject disk4".into(),
+            stderr: "Volume disk4s2 failed to unmount".into(),
+        },
+    ));
+    assert_eq!(
+        s.core.eject_device("disk4"),
+        Err(AppError::CommandFailed {
+            command: "diskutil eject disk4".into(),
+            stderr: "Volume disk4s2 failed to unmount".into()
+        })
+    );
+    assert_eq!(log_lines(&s.core)[0].1, LogResult::Fail);
+}
+
+#[test]
+fn eject_validates_and_locks_the_target() {
+    let s = setup(vec![]);
+    for disk in ["disk4s1", "/dev/disk4", "disk4;ls", ""] {
+        assert_eq!(s.core.eject_device(disk), Err(AppError::InvalidTarget));
+    }
+    // 取り出しは、そのディスクの区画への操作中にも始められない
+    let _unmounting = s
+        .core
+        .begin_operation("disk4s1", Operation::UnmountEsp)
+        .unwrap();
+    assert_eq!(s.core.eject_device("disk4"), Err(AppError::Busy));
+    assert!(s.privileged.received().is_empty());
+}
+
+#[test]
+fn eject_reports_cancelled_authentication() {
+    let s = setup(vec![]);
+    s.privileged.push(Err(PrivilegedError {
+        kind: PrivilegedErrorKind::AuthCancelled,
+        launch: Some(launch(LogResult::Cancelled)),
+    }));
+    assert_eq!(s.core.eject_device("disk4"), Err(AppError::AuthCancelled));
 }

@@ -146,11 +146,16 @@ Phaseの推奨: Opus・high以上
 
 ## Phase 6: 取り出しとESPのゴミ箱
 Phaseの推奨: Sonnet・high以上
-- [ ] T6-1 【エージェント】ユースケース：`eject_device`、`empty_esp_trash`（解放量）、ゴミ箱を空にして取り外す、取り外し時の自動削除（`auto_empty_trash_on_unmount`）。偽実装で単体テスト
+引き継ぎ: T6-1・T6-2完了。次はW6-1（checkコマンド）→W6-2（モックとの構造の照合）。設定の`auto_empty_trash_on_unmount`は、本体のTauriコマンド側で適用する（`unmount_esp`のとき`empty_trash || 設定`）。ゴミ箱を空にしたあとの詳細の更新は、本体が一覧を取得し直す`devices-changed`でUIが読み直す。取り出し・ゴミ箱の操作の画面と実機は未確認。
+- [x] T6-1 【エージェント】ユースケース：`eject_device`、`empty_esp_trash`（解放量）、ゴミ箱を空にして取り外す、取り外し時の自動削除（`auto_empty_trash_on_unmount`）。偽実装で単体テスト
   - 依存: T5-6
-- [ ] T6-2 【エージェント】UI：デバイスの取り出しと確認のモーダル（`confirm_eject`に従う）、ゴミ箱の警告と量、空きが15%未満の強調、「ゴミ箱を空にする」「ゴミ箱を空にして取り外す」、解放量の通知
+  - 実施: Sonnet・high
+  - `unmount_esp(part, empty_trash)`は、先に`EmptyTrash`、次に`UnmountEsp`を1つの操作（`busy`は1組）で行い、空にするのに失敗したら取り外さずに返す（マウントしたまま再試行できる）。設定の`auto_empty_trash_on_unmount`は、Tauriコマンド側で引数と合わせて（`empty_trash || 設定`）本体に渡す（`open_finder_after_mount`と同じ形）。`empty_esp_trash`は解放量（補助プロセスの`freed_bytes`。なければ0）を返し、`eject_device`・`empty_esp_trash`・`unmount_esp`はいずれも失敗時も一覧を取得し直す。単体テスト11件を追加（`app/tests/esp.rs`）
+- [x] T6-2 【エージェント】UI：デバイスの取り出しと確認のモーダル（`confirm_eject`に従う）、ゴミ箱の警告と量、空きが15%未満の強調、「ゴミ箱を空にする」「ゴミ箱を空にして取り外す」、解放量の通知
   - 依存: T6-1
   - 画面: S01i, S01k, S01l
+  - 実施: Sonnet・high
+  - `EjectDialog`（Carbonの`cds-modal`、`DetailHeader`から。`confirm_eject`がオフなら確認なしで取り出す）、`EspTile`のゴミ箱の警告（左線は警告の色。3pxは許可リストに理由つきで追加）と、ゴミ箱に残りがあるときの3つのボタン（空にして取り外す・空にする・Finderで開く）、`EspUsageBar`の空き15%未満の強調（`isLowFreeSpace`。空きの文字をエラーの色に）。`espStore`に`unmount(part, emptyTrash)`・`emptyTrash`（解放量の通知）・`eject`を追加。取り出しの確認の個数は`ejectVolumeCount`（マウント中のボリュームとESP、APFSはコンテナの中のマウント中のボリューム）。辞書は既存のキーだけを使い、`i18n_pending.json`を空にした。`check`・`tauri dev`の起動（エラーなし・パニックなし）まで確認。画面の目視と、認証を伴う実機の操作は未実施（W6-3〜W6-5）
 
 ## Phase 7: アイコン
 Phaseの推奨: Sonnet・medium以上

@@ -31,11 +31,31 @@ pub async fn mount_esp(
     run_blocking(move || core.mount_esp(&part, open_finder)).await
 }
 
-/// マウント中のESPを取り外す
+/// マウント中のESPを取り外す。`empty_trash`か、設定の`auto_empty_trash_on_unmount`なら、先にゴミ箱を空にする
 #[tauri::command]
-pub async fn unmount_esp(core: State<'_, Arc<AppCore>>, part: String) -> Result<(), AppError> {
+pub async fn unmount_esp(
+    core: State<'_, Arc<AppCore>>,
+    settings: State<'_, Arc<SettingsStore>>,
+    part: String,
+    empty_trash: bool,
+) -> Result<(), AppError> {
     let core = Arc::clone(&core);
-    run_blocking(move || core.unmount_esp(&part)).await
+    let empty_trash = empty_trash || settings.get().auto_empty_trash_on_unmount;
+    run_blocking(move || core.unmount_esp(&part, empty_trash)).await
+}
+
+/// マウント中のESPのゴミ箱を空にする。解放したバイト数を返す
+#[tauri::command]
+pub async fn empty_esp_trash(core: State<'_, Arc<AppCore>>, part: String) -> Result<u64, AppError> {
+    let core = Arc::clone(&core);
+    run_blocking(move || core.empty_esp_trash(&part)).await
+}
+
+/// デバイスごと取り出す
+#[tauri::command]
+pub async fn eject_device(core: State<'_, Arc<AppCore>>, disk: String) -> Result<(), AppError> {
+    let core = Arc::clone(&core);
+    run_blocking(move || core.eject_device(&disk)).await
 }
 
 /// マウント先を引き直してFinderで開く

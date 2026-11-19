@@ -1,8 +1,9 @@
 <script lang="ts">
 	// ESPの容量バー（独自の部品）：空き容量の文字、使用中・ゴミ箱・空きの帯（ツールチップでそれぞれの量）、凡例。
-	// 値の色はトークン（使用中は帯グラフのAPFSの色、ゴミ箱は警告の色）。読めない値は「不明」
+	// 値の色はトークン（使用中は帯グラフのAPFSの色、ゴミ箱は警告の色）。空きが15%を切ったら、空きの文字をエラーの色にする。読めない値は「不明」
 	import { m } from '#lib/i18n/index.js';
 	import type { EspUsage } from '#lib/api/types.js';
+	import { isLowFreeSpace } from '#lib/devices/model.js';
 	import { formatBytes } from '#lib/format/index.js';
 
 	let { usage }: { usage: EspUsage } = $props();
@@ -11,11 +12,12 @@
 	const known = $derived(usage.total !== null && usage.free !== null && total > 0);
 	const trash = $derived(usage.trash ?? 0);
 	const used = $derived(known ? Math.max(total - (usage.free ?? 0) - trash, 0) : 0);
+	const low = $derived(isLowFreeSpace(usage));
 	const percent = (value: number) => `${((value / total) * 100).toFixed(2)}%`;
 </script>
 
 {#if known && usage.free !== null && usage.total !== null}
-	<span class="mono">{m['esp.free_of']({ free: formatBytes(usage.free), total: formatBytes(usage.total) })}</span>
+	<span class="mono" class:low>{m['esp.free_of']({ free: formatBytes(usage.free), total: formatBytes(usage.total) })}</span>
 	<div
 		class="bar"
 		aria-hidden="true"
@@ -44,6 +46,10 @@
 
 	.muted {
 		color: var(--cds-text-secondary);
+	}
+
+	.low {
+		color: var(--cds-support-error);
 	}
 
 	.bar {
